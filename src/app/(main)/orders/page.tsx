@@ -3,6 +3,20 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
+import { 
+  ChevronDown, 
+  ChevronUp, 
+  Package, 
+  MapPin, 
+  Phone,
+  Calendar,
+  CreditCard,
+  Truck,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  ShoppingBag
+} from "lucide-react";
 
 type OrderItem = {
   id: string;
@@ -33,7 +47,6 @@ export default function OrdersPage() {
 
   const [page, setPage] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
-
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
   const toggleOrder = (id: string) => {
@@ -72,11 +85,11 @@ export default function OrdersPage() {
       phone,
       shipping_address
     `,
-        { count: "exact" }, // 👈 để biết tổng số đơn
+        { count: "exact" }
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .range(from, to); // 👈 PHÂN TRANG Ở ĐÂY
+      .range(from, to);
 
     const { data: orderItems, error } = await supabase.from("order_items")
       .select(`
@@ -92,8 +105,6 @@ export default function OrdersPage() {
 
     if (error) {
       console.error(error);
-    } else {
-      console.log(orderItems);
     }
 
     const mergedOrders: Order[] = (data || []).map((order: any) => ({
@@ -104,158 +115,349 @@ export default function OrdersPage() {
     }));
 
     setOrders(mergedOrders);
-
     setTotalOrders(count || 0);
     setLoading(false);
   };
 
-  const getPaymentStatus = (status: string) => {
+  const getPaymentStatusConfig = (status: string) => {
     switch (status) {
       case "paid":
-        return "text-green-400";
+        return {
+          text: "Paid",
+          color: "text-emerald-700",
+          bg: "bg-emerald-50",
+          border: "border-emerald-200",
+          icon: CheckCircle2
+        };
       case "pending":
-        return "text-yellow-400";
+        return {
+          text: "Pending",
+          color: "text-amber-700",
+          bg: "bg-amber-50",
+          border: "border-amber-200",
+          icon: Clock
+        };
       case "failed":
-        return "text-red-400";
+        return {
+          text: "Failed",
+          color: "text-red-700",
+          bg: "bg-red-50",
+          border: "border-red-200",
+          icon: XCircle
+        };
       default:
-        return "text-gray-400";
+        return {
+          text: status,
+          color: "text-gray-700",
+          bg: "bg-gray-50",
+          border: "border-gray-200",
+          icon: CreditCard
+        };
     }
   };
 
-  const getShippingStatus = (status: string) => {
+  const getShippingStatusConfig = (status: string) => {
     switch (status) {
       case "processing":
-        return "text-yellow-400";
+        return {
+          text: "Processing",
+          color: "text-blue-700",
+          bg: "bg-blue-50",
+          border: "border-blue-200",
+          icon: Package
+        };
       case "shipping":
-        return "text-blue-400";
+        return {
+          text: "Shipping",
+          color: "text-purple-700",
+          bg: "bg-purple-50",
+          border: "border-purple-200",
+          icon: Truck
+        };
       case "completed":
-        return "text-green-400";
+        return {
+          text: "Completed",
+          color: "text-emerald-700",
+          bg: "bg-emerald-50",
+          border: "border-emerald-200",
+          icon: CheckCircle2
+        };
       case "cancelled":
-        return "text-red-400";
+        return {
+          text: "Cancelled",
+          color: "text-red-700",
+          bg: "bg-red-50",
+          border: "border-red-200",
+          icon: XCircle
+        };
       default:
-        return "text-gray-400";
+        return {
+          text: status,
+          color: "text-gray-700",
+          bg: "bg-gray-50",
+          border: "border-gray-200",
+          icon: Package
+        };
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
+              <p className="text-gray-600 font-medium">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center py-20">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
+              <ShoppingBag className="w-10 h-10 text-gray-400" />
+            </div>
+            <h3 className="text-2xl font-semibold text-gray-800 mb-2">
+              Do not have orders yet
+            </h3>
+            <p className="text-gray-600">
+              Start to shop now!
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-6 py-12">
-      {loading ? (
-        <p className="text-gray-600">Loading orders...</p>
-      ) : orders.length === 0 ? (
-        <p className="text-gray-600">You have no orders</p>
-      ) : (
-        <div className="space-y-8">
-          {orders.map((order) => (
-            <div key={order.id} className="bg-white rounded-2xl p-6 shadow-lg">
-              {/* Header */}
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <p className="text-sm text-gray-600">
-                    Mã đơn: {order.id.slice(0, 8)}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {new Date(order.created_at).toLocaleString()}
-                  </p>
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            My Orders
+          </h1>
+          <p className="text-gray-600">
+            Manage and keep track with your orders
+          </p>
+        </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p
-                      className={`font-semibold ${getShippingStatus(order.status)}`}
-                    >
-                       {order.status.toUpperCase()}
-                    </p>
-                    <p
-                      className={`text-sm ${getPaymentStatus(order.payment_status)}`}
-                    >
-                       {order.payment_status.toUpperCase()}
-                    </p>
-                    <p className="text-pink-400 font-bold text-lg">
-                      {(order.total_price ?? 0).toLocaleString()}₫
-                    </p>
-                  </div>
+        {/* Orders List */}
+        <div className="space-y-6">
+          {orders.map((order) => {
+            const shippingConfig = getShippingStatusConfig(order.status);
+            const paymentConfig = getPaymentStatusConfig(order.payment_status);
+            const ShippingIcon = shippingConfig.icon;
+            const PaymentIcon = paymentConfig.icon;
+            const isExpanded = expandedOrderId === order.id;
 
-                  {/* Nút xổ */}
-                  <button
-                    onClick={() => toggleOrder(order.id)}
-                    className="text-2xl transition-transform duration-300"
-                  >
-                    {expandedOrderId === order.id ? "▲" : "▼"}
-                  </button>
-                </div>
-              </div>
+            return (
+              <div
+                key={order.id}
+                className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-300"
+              >
+                {/* Order Header */}
+                <div className="p-6">
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+                    {/* Order Info */}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="flex items-center gap-2">
+                          <Package className="w-5 h-5 text-gray-400" />
+                          <span className="font-semibold text-gray-900">
+                            #{order.id.slice(0, 8).toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar className="w-4 h-4" />
+                        <span>{new Date(order.created_at).toLocaleString('vi-VN', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}</span>
+                      </div>
+                    </div>
 
-              {/* Thông tin giao hàng */}
-              <div className="mb-4 border-t border-gray-700 pt-4 text-sm text-gray-300 space-y-1">
-                <p> SĐT: {order.phone}</p>
-                <p> Địa chỉ: {order.shipping_address}</p>
-              </div>
-
-              {/* Chi tiết sản phẩm (accordion) */}
-              {expandedOrderId === order.id && (
-                <div className="space-y-3 mt-4 border-t border-gray-700 pt-4">
-                  {order.order_items.map((item) => {
-                    const product = item.products;
-                    if (!product) return null;
-
-                    return (
-                      <div
-                        key={item.id}
-                        className="flex items-center gap-4 bg-gray-700/50 p-3 rounded-xl"
-                      >
-                        <Image
-                          src={product.images?.[0] || "/no-image.png"}
-                          alt={product.name}
-                          width={60}
-                          height={60}
-                          className="rounded-lg object-cover"
-                        />
-
-                        <div className="flex-1">
-                          <p className="font-medium">{product.name}</p>
-                          <p className="text-sm text-gray-400">
-                            {item.quantity} x{" "}
-                            {(item.price ?? 0).toLocaleString()}₫
-                          </p>
+                    {/* Status & Price */}
+                    <div className="flex items-center gap-4">
+                      <div className="flex flex-col gap-2">
+                        {/* Shipping Status */}
+                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${shippingConfig.bg} ${shippingConfig.border}`}>
+                          <ShippingIcon className={`w-4 h-4 ${shippingConfig.color}`} />
+                          <span className={`text-sm font-medium ${shippingConfig.color}`}>
+                            {shippingConfig.text}
+                          </span>
                         </div>
 
-                        <p className="text-pink-400 font-semibold">
-                          {((item.price ?? 0) * item.quantity).toLocaleString()}
-                          ₫
+                        {/* Payment Status */}
+                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${paymentConfig.bg} ${paymentConfig.border}`}>
+                          <PaymentIcon className={`w-4 h-4 ${paymentConfig.color}`} />
+                          <span className={`text-sm font-medium ${paymentConfig.color}`}>
+                            {paymentConfig.text}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Total Price */}
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600 mb-1">Total price</p>
+                        <p className="text-2xl font-bold text-blue-600">
+                          {(order.total_price ?? 0).toLocaleString()}₫
                         </p>
                       </div>
-                    );
-                  })}
+
+                      {/* Toggle Button */}
+                      <button
+                        onClick={() => toggleOrder(order.id)}
+                        className="ml-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        aria-label={isExpanded ? "Thu gọn" : "Xem chi tiết"}
+                      >
+                        {isExpanded ? (
+                          <ChevronUp className="w-6 h-6 text-gray-600" />
+                        ) : (
+                          <ChevronDown className="w-6 h-6 text-gray-600" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Shipping Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                    <div className="flex items-start gap-3">
+                      <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Phone</p>
+                        <p className="text-sm font-medium text-gray-900">{order.phone}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Address</p>
+                        <p className="text-sm font-medium text-gray-900">{order.shipping_address}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              )}
+
+                {/* Order Items (Expanded) */}
+                {isExpanded && (
+                  <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-4">
+                      Detail ({order.order_items.length} products)
+                    </h4>
+                    <div className="space-y-3">
+                      {order.order_items.map((item) => {
+                        const product = item.products;
+                        if (!product) return null;
+
+                        return (
+                          <div
+                            key={item.id}
+                            className="flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-200 hover:border-blue-300 transition-colors"
+                          >
+                            {/* Product Image */}
+                            <div className="relative w-16 h-16 flex-shrink-0">
+                              <Image
+                                src={product.images?.[0] || "/no-image.png"}
+                                alt={product.name}
+                                fill
+                                className="rounded-lg object-cover"
+                              />
+                            </div>
+
+                            {/* Product Info */}
+                            <div className="flex-1 min-w-0">
+                              <h5 className="font-medium text-gray-900 truncate mb-1">
+                                {product.name}
+                              </h5>
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <span>Số lượng: {item.quantity}</span>
+                                <span>•</span>
+                                <span>{(item.price ?? 0).toLocaleString()}₫</span>
+                              </div>
+                            </div>
+
+                            {/* Item Total */}
+                            <div className="text-right flex-shrink-0">
+                              <p className="text-lg font-semibold text-blue-600">
+                                {((item.price ?? 0) * item.quantity).toLocaleString()}₫
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(p - 1, 1))}
+              disabled={page === 1}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              ← Previous
+            </button>
+
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                // Show first, last, current, and adjacent pages
+                if (
+                  pageNum === 1 ||
+                  pageNum === totalPages ||
+                  (pageNum >= page - 1 && pageNum <= page + 1)
+                ) {
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setPage(pageNum)}
+                      className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                        page === pageNum
+                          ? "bg-blue-600 text-white"
+                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                } else if (pageNum === page - 2 || pageNum === page + 2) {
+                  return (
+                    <span key={pageNum} className="px-2 text-gray-400">
+                      ...
+                    </span>
+                  );
+                }
+                return null;
+              })}
             </div>
-          ))}
-        </div>
-      )}
-      {/* Pagination */}
-      {orders.length > 0 && (
-        <div className="flex justify-center items-center gap-4 mt-8">
-          <button
-            onClick={() => setPage((p) => Math.max(p - 1, 1))}
-            disabled={page === 1}
-            className="px-4 py-2 bg-gray-700 rounded-lg disabled:opacity-40"
-          >
-            ← Trang trước
-          </button>
 
-          <span className="text-gray-300">
-            Trang {page} / {totalPages || 1}
-          </span>
-
-          <button
-            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-            disabled={page === totalPages}
-            className="px-4 py-2 bg-gray-700 rounded-lg disabled:opacity-40"
-          >
-            Trang sau →
-          </button>
-        </div>
-      )}
+            <button
+              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+              disabled={page === totalPages}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Next →
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
