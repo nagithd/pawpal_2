@@ -38,6 +38,8 @@ export default function PostCard({ post, onPostUpdate }: PostCardProps) {
   const [replyContent, setReplyContent] = useState("");
   const replyFormRef = useRef<HTMLDivElement>(null);
   const [userPet, setUserPet] = useState<any>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const pet = post.pets;
   const DEFAULT_COMMENTS_LIMIT = 5;
@@ -331,24 +333,32 @@ export default function PostCard({ post, onPostUpdate }: PostCardProps) {
         </div>
         <div className="flex-1">
           <h3 className="font-bold text-gray-900">{pet?.name || "Pet"}</h3>
-          <p className="text-sm text-gray-600">{getTimeAgo(post.created_at)}</p>
+          <p className="text-lg text-gray-600">{getTimeAgo(post.created_at)}</p>
         </div>
       </div>
 
       {/* Content */}
       {post.content && (
         <div className="p-4">
-          <p className="text-gray-800 whitespace-pre-wrap">{post.content}</p>
+          <p className="text-lg text-gray-800 whitespace-pre-wrap">{post.content}</p>
         </div>
       )}
 
       {/* Images */}
       {post.images && post.images.length > 0 && (
-        <div className="bg-gradient-to-br from-pink-100 to-purple-100 overflow-hidden">
+        <div
+          className="bg-gradient-to-br from-pink-100 to-purple-100 overflow-hidden cursor-pointer"
+          onClick={() => {
+            setSelectedImage(post.images[0]);
+            setShowImageModal(true);
+          }}
+        >
           <img
             src={post.images[0]}
+            loading="lazy"
+            decoding="async"
             alt="Post"
-            className="w-full h-auto max-h-96 object-cover"
+            className="w-full h-auto object-contain hover:opacity-95 transition"
           />
         </div>
       )}
@@ -366,7 +376,7 @@ export default function PostCard({ post, onPostUpdate }: PostCardProps) {
       )}
 
       {/* Interaction Summary */}
-      <div className="px-4 py-2 flex items-center gap-4 text-sm text-gray-600">
+      <div className="px-4 py-2 flex items-center gap-4 text-lg text-gray-600">
         <span>{likeCount} Likes</span>
         <span>·</span>
         <span>{commentCount} Comments</span>
@@ -387,7 +397,7 @@ export default function PostCard({ post, onPostUpdate }: PostCardProps) {
           }`}
         >
           <IoHeart className={`text-xl ${isLiked ? "fill-current" : ""}`} />
-          <span className="text-sm font-medium">
+          <span className="text-lg font-medium">
             {isLiked ? "Liked" : "Like"}
           </span>
         </button>
@@ -398,11 +408,11 @@ export default function PostCard({ post, onPostUpdate }: PostCardProps) {
           className="flex items-center gap-2 text-gray-600 hover:bg-gray-100 px-3 py-1 rounded-lg transition"
         >
           <IoChatbubbles className="text-xl" />
-          <span className="text-sm font-medium">Comment</span>
+          <span className="text-lg font-medium">Comment</span>
         </button>
         <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-100 px-3 py-1 rounded-lg transition">
           <IoShareSocial className="text-xl" />
-          <span className="text-sm font-medium">Share</span>
+          <span className="text-lg font-medium">Share</span>
         </button>
       </div>
 
@@ -414,7 +424,7 @@ export default function PostCard({ post, onPostUpdate }: PostCardProps) {
             {comments.map((comment) => (
               <div key={comment.id}>
                 <div className="flex gap-2">
-                  <div className="w-8 h-8 mt-1.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 overflow-hidden">
+                  <div className="w-8 h-8 mt-1.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold flex-shrink-0 overflow-hidden">
                     {comment.pets?.avatar_url ? (
                       <img
                         src={comment.pets.avatar_url}
@@ -427,10 +437,10 @@ export default function PostCard({ post, onPostUpdate }: PostCardProps) {
                   </div>
                   <div className="flex-1">
                     <div className="bg-gray-100 rounded-lg px-3 py-2">
-                      <p className="font-semibold text-sm text-gray-900">
+                      <p className="font-semibold text-lg text-gray-900">
                         {comment.pets?.name || "Pet"}
                       </p>
-                      <p className="text-sm text-gray-700">{comment.content}</p>
+                      <p className="text-lg text-gray-700">{comment.content}</p>
                     </div>
                     <div className="flex items-center gap-3 mt-1 ml-3 text-xs text-gray-500">
                       <span>{getTimeAgo(comment.created_at)}</span>
@@ -459,7 +469,7 @@ export default function PostCard({ post, onPostUpdate }: PostCardProps) {
                             onChange={(e) => setReplyContent(e.target.value)}
                             placeholder="Viết câu trả lời..."
                             id={`reply-input-${comment.id}`}
-                            className="flex-1 px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-full text-sm text-white placeholder-gray-500"
+                            className="flex-1 px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-full text-lg text-white placeholder-gray-500"
                             autoFocus
                           />
                           <button
@@ -517,7 +527,7 @@ export default function PostCard({ post, onPostUpdate }: PostCardProps) {
         {!showAllComments && commentCount > DEFAULT_COMMENTS_LIMIT && (
           <button
             onClick={handleLoadMore}
-            className="text-sm text-gray-400 hover:text-gray-300 mb-3"
+            className="text-lg text-gray-400 hover:text-gray-300 mb-3"
           >
             Load more comments ({commentCount - DEFAULT_COMMENTS_LIMIT}{" "}
             remaining)
@@ -526,7 +536,7 @@ export default function PostCard({ post, onPostUpdate }: PostCardProps) {
 
         {/* Comment Input */}
         <form onSubmit={handleComment} className="flex gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 overflow-hidden">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold flex-shrink-0 overflow-hidden">
             {userPet?.avatar_url ? (
               <img
                 src={userPet.avatar_url}
@@ -544,7 +554,7 @@ export default function PostCard({ post, onPostUpdate }: PostCardProps) {
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Viết bình luận..."
-              className="flex-1 px-3 py-2 bg-gray-100 border border-gray-200 rounded-full text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-pink-400"
+              className="flex-1 px-3 py-2 bg-gray-100 border border-gray-200 rounded-full text-md text-gray-900 placeholder-gray-500 focus:outline-none focus:border-pink-400"
               disabled={loadingComment}
             />
             <button
@@ -557,6 +567,27 @@ export default function PostCard({ post, onPostUpdate }: PostCardProps) {
           </div>
         </form>
       </div>
+
+      {/* Image Modal */}
+      {showImageModal && selectedImage && (
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <button
+            onClick={() => setShowImageModal(false)}
+            className="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 transition"
+          >
+            ×
+          </button>
+          <img
+            src={selectedImage}
+            alt="Full size"
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }

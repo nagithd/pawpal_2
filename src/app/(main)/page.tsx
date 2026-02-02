@@ -83,7 +83,7 @@ export default function HomePage() {
         {/* Nút tạo bài đăng */}
         <div className="mb-6">
           {loading ? (
-            <div className="w-full lg:max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-4">
+            <div className="w-full lg:max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-4">
               <div className="animate-pulse">
                 <div className="h-6 bg-gray-200 rounded w-1/2"></div>
               </div>
@@ -91,7 +91,7 @@ export default function HomePage() {
           ) : (
             <button
               onClick={() => setShowCreatePost(true)}
-              className="w-full lg:max-w-2xl mx-auto flex items-center gap-3 bg-white rounded-xl shadow-lg p-4 hover:shadow-xl transition"
+              className="w-full lg:max-w-3xl mx-auto flex items-center gap-3 bg-white rounded-xl shadow-lg p-4 hover:shadow-xl transition"
             >
               <span className="text-gray-500 text-left flex-1">
                 Chia sẻ khoảnh khắc của thú cưng...
@@ -102,7 +102,7 @@ export default function HomePage() {
 
         <div className="max-w-7xl mx-auto px-4 py-6">
           {/* Cột giữa - Feed bài đăng */}
-          <div className="lg:max-w-2xl mx-auto">
+          <div className="lg:max-w-3xl mx-auto">
             {loading ? (
               <div className="bg-white rounded-xl shadow-lg p-8 text-center">
                 <div className="animate-pulse">
