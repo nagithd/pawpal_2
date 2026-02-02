@@ -203,7 +203,7 @@ export default function OrdersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 sm:px-6 lg:px-8 py-12">
+      <div className="min-h-[125vh] bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-center py-20">
             <div className="text-center space-y-4">
@@ -218,7 +218,7 @@ export default function OrdersPage() {
 
   if (orders.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 sm:px-6 lg:px-8 py-12">
+      <div className="min-h-[125vh] bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-5xl mx-auto">
           <div className="text-center py-20">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
@@ -237,7 +237,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-[125vh] bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 sm:px-6 lg:px-8 py-12">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">

@@ -93,7 +93,7 @@ export default function ShopPage() {
   }, [search, minPrice, maxPrice]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-6 py-12">
+    <div className="min-h-[125vh] bg-gradient-to-br from-gray-50 to-gray-100 px-6 py-12">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Sidebar Filter */}
         <div className="md:col-span-1 bg-white p-6 rounded-2xl h-fit sticky top-24 space-y-6 shadow-lg">

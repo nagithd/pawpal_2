@@ -72,7 +72,7 @@ export default function ProductDetailPage() {
   if (!product)
     return <p className="text-center text-gray-600 mt-20">Loading...</p>;
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 px-6 py-12">
+    <div className="min-h-[125vh] bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 px-6 py-12">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10">
         {/* Ảnh sản phẩm */}
         <div className="bg-white rounded-2xl p-4 shadow-lg">
