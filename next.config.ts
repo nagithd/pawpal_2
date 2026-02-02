@@ -17,6 +17,16 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "via.placeholder.com",
       },
+      {
+        protocol: "https",
+        hostname: "down-vn.img.susercontent.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "filebroker-cdn.lazada.vn",
+        pathname: "/**",
+      },
     ],
   },
 };

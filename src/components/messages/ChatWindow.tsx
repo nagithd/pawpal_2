@@ -256,7 +256,6 @@ export default function ChatWindow({
           msg.sender_pet_id !== currentPetId ? { ...msg, is_read: true } : msg,
         ),
       );
-
     } catch (error) {
       console.error("Error marking messages as read:", error);
     }
@@ -271,11 +270,7 @@ export default function ChatWindow({
     }
 
     messagesChannelRef.current = supabase
-      .channel(`messages:${match.matchId}`, {
-        config: {
-          broadcast: { self: false },
-        },
-      })
+      .channel(`messages:${match.matchId}`)
       .on(
         "postgres_changes",
         {
@@ -343,12 +338,12 @@ export default function ChatWindow({
             };
 
             setMessages((prev) => {
-              // Check if message already exists
+              // Check if message already exists (avoid duplicates)
               if (prev.some((m) => m.id === message.id)) {
                 return prev;
               }
+
               // Remove optimistic message if this is the real version
-              // Optimistic messages have temp IDs and same content/sender
               const withoutOptimistic = prev.filter((m) => {
                 if (!m.isOptimistic) return true;
                 // Remove optimistic if it matches this message's content and sender
@@ -367,12 +362,12 @@ export default function ChatWindow({
             // Mark as read if not from current user
             if (data.sender_pet_id !== currentPetId) {
               markMessagesAsRead();
-            }
 
-            // Notify parent about new message (from other user) for conversation list update
-            if (onMessageSent && data.sender_pet_id !== currentPetId) {
-              onMessageSent(match.matchId, message);
-            } 
+              // Notify parent about new message for conversation list update
+              if (onMessageSent) {
+                onMessageSent(match.matchId, message);
+              }
+            }
           }
         },
       )

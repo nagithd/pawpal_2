@@ -151,24 +151,29 @@ export default function ShopPage() {
             <>
               <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
                 {products.map((p) => (
-                  <Link key={p.id} href={`/shop/${p.id}`} className="block">
+                  <Link
+                    key={p.id}
+                    href={`/shop/${p.id}`}
+                    className="block h-full"
+                  >
                     <div
                       key={p.id}
-                      className="bg-white rounded-2xl shadow-lg overflow-hidden hover:scale-[1.02] transition"
+                      className="bg-white rounded-2xl shadow-lg overflow-hidden hover:scale-[1.02] transition h-full flex flex-col"
                     >
-                      <Image
-                        src={p.images?.[0] || "/no-image.png"}
-                        alt={p.name}
-                        width={400}
-                        height={300}
-                        className="w-full h-48 object-cover"
-                      />
+                      <div className="relative w-full h-48 flex-shrink-0">
+                        <Image
+                          src={p.images?.[0] || "/no-image.png"}
+                          alt={p.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
 
-                      <div className="p-4">
+                      <div className="p-4 flex flex-col flex-grow">
                         <h2 className="text-lg font-semibold text-gray-900">
                           {p.name}
                         </h2>
-                        <p className="text-sm text-gray-600 line-clamp-2">
+                        <p className="text-sm text-gray-600 line-clamp-2 flex-grow">
                           {p.description}
                         </p>
 

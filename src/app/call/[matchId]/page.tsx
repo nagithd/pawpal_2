@@ -135,15 +135,6 @@ export default function CallPage() {
         setCall(videoCall);
         setHasJoined(true);
         setCallStartTime(Date.now());
-
-        // Only send CALL_ACCEPTED when receiver joins (incoming call)
-        // Not when caller joins (outgoing call)
-        if (isIncoming && broadcastChannel) {
-          broadcastChannel.postMessage({ type: "CALL_ACCEPTED" });
-          console.log(
-            "✅ Receiver joined - Sent CALL_ACCEPTED to clear timeout",
-          );
-        }
       } catch (error: any) {
         console.error("❌ Call error:", error);
         console.error("Error details:", error.message, error.stack);
@@ -177,13 +168,28 @@ export default function CallPage() {
       handleCallEnd();
     };
 
+    const handleParticipantJoined = () => {
+      // When a participant joins, check if we have 2 people now
+      call.state.participants$.subscribe((participants) => {
+        if (participants.length >= 2 && broadcastChannel) {
+          // Both people are in the call, clear the timeout
+          broadcastChannel.postMessage({ type: "CALL_ACCEPTED" });
+          console.log(
+            "✅ Both participants joined - Sent CALL_ACCEPTED to clear timeout",
+          );
+        }
+      });
+    };
+
     // Listen to call events
     call.on("call.session_participant_left", handleParticipantLeft);
+    call.on("call.session_participant_joined", handleParticipantJoined);
 
     return () => {
       call.off("call.session_participant_left", handleParticipantLeft);
+      call.off("call.session_participant_joined", handleParticipantJoined);
     };
-  }, [call]);
+  }, [call, broadcastChannel]);
 
   const handleCallEnd = async () => {
     // Calculate call duration
