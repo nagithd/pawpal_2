@@ -14,6 +14,9 @@ import VideoCallModal from "./VideoCallModal";
 import { createClient } from "@/lib/supabase/client";
 import { WebRTCManager, CallType, CallStatus } from "@/lib/webrtc";
 
+// Message cache to prevent refetching when switching conversations
+const messageCache = new Map<string, Message[]>();
+
 interface Message {
   id: string;
   content: string | null;
@@ -75,6 +78,7 @@ export default function ChatWindow({
   const [isOtherTyping, setIsOtherTyping] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initialLoadDoneRef = useRef<Set<string>>(new Set()); // Track which matches have been initially loaded
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -112,13 +116,57 @@ export default function ChatWindow({
 
   useEffect(() => {
     if (match) {
-      // Reset state khi đổi conversation
-      setMessages([]);
-      setHasMore(true);
+      const matchId = match.matchId;
+      
+      // Check if this match has been initially loaded
+      const alreadyLoaded = initialLoadDoneRef.current.has(matchId);
+      
+      if (alreadyLoaded) {
+        // Already loaded, don't fetch again - just restore from cache
+        const cachedMessages = messageCache.get(matchId);
+        if (cachedMessages) {
+          setMessages(cachedMessages);
+          setHasMore(cachedMessages.length >= MESSAGES_PER_PAGE);
+          setTimeout(() => scrollToBottom(true), 50);
+        }
+        setIsLoadingMore(false);
+        // Still need to subscribe and mark as read
+        markMessagesAsRead();
+        subscribeToMessages();
+        subscribeToReactions();
+        subscribeToTyping();
+        return;
+      }
+      
+      // Mark as loaded
+      initialLoadDoneRef.current.add(matchId);
+      
+      // First time loading this match
+      const cachedMessages = messageCache.get(matchId);
+      
+      if (cachedMessages) {
+        // Load from cache immediately - no flash
+        setMessages(cachedMessages);
+        setHasMore(cachedMessages.length >= MESSAGES_PER_PAGE);
+        
+        // Load reactions then scroll (to prevent jump)
+        loadReactions().then(() => {
+          setTimeout(() => scrollToBottom(true), 50);
+        });
+      } else {
+        // Reset state khi đổi conversation (only if no cache)
+        setMessages([]);
+        setHasMore(true);
+        
+        // Load messages and reactions in parallel, then scroll
+        Promise.all([loadMessages(), loadReactions()]).then(() => {
+          setTimeout(() => scrollToBottom(true), 50);
+        });
+      }
+      
       setIsLoadingMore(false);
 
-      loadMessages();
-      loadReactions();
+      // Always mark as read and subscribe
       markMessagesAsRead();
       subscribeToMessages();
       subscribeToReactions();
@@ -206,12 +254,21 @@ export default function ChatWindow({
       if (data.messages) {
         if (before) {
           // Load more - prepend to existing messages
-          setMessages((prev) => [...data.messages, ...prev]);
+          const newMessages = [...data.messages, ...messages];
+          setMessages(newMessages);
           setHasMore(data.messages.length === MESSAGES_PER_PAGE);
+          // Update cache
+          if (match) {
+            messageCache.set(match.matchId, newMessages);
+          }
         } else {
           // Initial load
           setMessages(data.messages);
           setHasMore(data.messages.length === MESSAGES_PER_PAGE);
+          // Cache messages
+          if (match) {
+            messageCache.set(match.matchId, data.messages);
+          }
           // Scroll instantly to bottom on initial load
           setTimeout(() => scrollToBottom(true), 100);
         }
@@ -364,7 +421,14 @@ export default function ChatWindow({
                 // Remove any optimistic message from this sender
                 return m.sender_pet_id !== message.sender_pet_id;
               });
-              return [...withoutOptimistic, message];
+              const newMessages = [...withoutOptimistic, message];
+              
+              // Update cache
+              if (match) {
+                messageCache.set(match.matchId, newMessages);
+              }
+              
+              return newMessages;
             });
 
             // Scroll to bottom to show new message (smooth)
@@ -877,16 +941,16 @@ export default function ChatWindow({
   return (
     <div className="flex-1 flex flex-col bg-white">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 bg-white flex items-center justify-between shadow-sm">
+      <div className="p-5 border-b border-gray-200 bg-white flex items-center justify-between shadow-sm">
         <div className="flex items-center">
           <Image
-            src={match.otherPet.avatar_url || "https://via.placeholder.com/40"}
+            src={match.otherPet.avatar_url || "https://via.placeholder.com/48"}
             alt={match.otherPet.name}
-            width={40}
-            height={40}
-            className="rounded-full object-cover max-w-[40px] max-h-[40px]"
+            width={48}
+            height={48}
+            className="rounded-full object-cover max-w-[48px] max-h-[48px]"
           />
-          <h3 className="ml-3 font-semibold text-gray-900 text-lg">
+          <h3 className="ml-4 font-semibold text-gray-900 text-xl">
             {match.otherPet.name}
           </h3>
         </div>
@@ -898,14 +962,14 @@ export default function ChatWindow({
             className="p-2.5 rounded-full hover:bg-gray-100 text-gray-700 transition-colors"
             title="Voice call"
           >
-            <IoCall size={22} />
+            <IoCall size={24} />
           </button>
           <button
             onClick={() => startCall("video")}
             className="p-2.5 rounded-full hover:bg-gray-100 text-pink-500 transition-colors"
             title="Video call"
           >
-            <IoVideocam size={22} />
+            <IoVideocam size={24} />
           </button>
         </div>
       </div>
@@ -989,13 +1053,13 @@ export default function ChatWindow({
               />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500">
+              <p className="text-sm text-gray-500">
                 Replying to{" "}
                 {replyingTo.sender_pet_id === currentPetId
                   ? "yourself"
                   : replyingTo.sender.name}
               </p>
-              <p className="text-sm text-gray-900 truncate">
+              <p className="text-base text-gray-900 truncate">
                 {replyingTo.content || "📷 Hình ảnh"}
               </p>
             </div>
@@ -1004,7 +1068,7 @@ export default function ChatWindow({
             onClick={cancelReply}
             className="p-1 text-gray-500 hover:text-gray-700"
           >
-            <IoClose size={20} />
+            <IoClose size={22} />
           </button>
         </div>
       )}

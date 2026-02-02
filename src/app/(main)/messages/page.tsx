@@ -23,6 +23,7 @@ interface Match {
   unreadCount: number;
   createdAt: string;
   isOnline: boolean;
+  lastActive: string | null;
 }
 
 export default function MessagesPage() {

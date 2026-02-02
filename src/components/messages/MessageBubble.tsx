@@ -88,14 +88,14 @@ export default function MessageBubble({
       >
         {!isOwnMessage && showAvatar && (
           <Image
-            src={message.sender.avatar_url || "https://via.placeholder.com/32"}
+            src={message.sender.avatar_url || "https://via.placeholder.com/40"}
             alt={message.sender.name}
-            width={32}
-            height={32}
-            className="rounded-full object-cover max-w-[32px] max-h-[32px] mb-5"
+            width={40}
+            height={40}
+            className="rounded-full object-cover max-w-[40px] max-h-[40px] mb-5"
           />
         )}
-        {!isOwnMessage && !showAvatar && <div className="w-8 h-8" />}
+        {!isOwnMessage && !showAvatar && <div className="w-10 h-10" />}
 
         <div className={`max-w-[70%]`}>
           <div
@@ -103,13 +103,13 @@ export default function MessageBubble({
               isOwnMessage
                 ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
                 : "bg-gray-100 text-gray-700"
-            } px-4 py-2.5 rounded-2xl text-sm`}
+            } px-4 py-3 rounded-2xl text-base`}
           >
             <div className="flex flex-col">
               <span className="font-medium">{message.content}</span>
               {showTimestamp && (
                 <span
-                  className={`text-xs mt-1 ${
+                  className={`text-sm mt-1 ${
                     isOwnMessage ? "text-pink-100" : "text-gray-500"
                   }`}
                 >
@@ -131,14 +131,14 @@ export default function MessageBubble({
     >
       {!isOwnMessage && showAvatar && (
         <Image
-          src={message.sender.avatar_url || "https://via.placeholder.com/32"}
+          src={message.sender.avatar_url || "https://via.placeholder.com/40"}
           alt={message.sender.name}
-          width={32}
-          height={32}
-          className="rounded-full object-cover max-w-[32px] max-h-[32px] mb-5"
+          width={40}
+          height={40}
+          className="rounded-full object-cover max-w-[40px] max-h-[40px] mb-5"
         />
       )}
-      {!isOwnMessage && !showAvatar && <div className="w-8 h-8" />}
+      {!isOwnMessage && !showAvatar && <div className="w-10 h-10" />}
       <div
         className={`max-w-[70%] ${
           isOwnMessage ? "items-end" : "items-start"
@@ -155,7 +155,7 @@ export default function MessageBubble({
               <button
                 key={emoji}
                 onClick={() => onReaction(message.id, emoji)}
-                className="hover:scale-125 transition-transform text-lg"
+                className="hover:scale-125 transition-transform text-xl"
               >
                 {emoji}
               </button>
@@ -165,7 +165,7 @@ export default function MessageBubble({
               className="hover:scale-110 transition-transform text-gray-600 ml-1"
               title="Trả lời"
             >
-              <IoArrowUndoOutline size={18} />
+              <IoArrowUndoOutline size={20} />
             </button>
           </div>
         )}
@@ -204,7 +204,7 @@ export default function MessageBubble({
             {/* Text hoặc reply - có background */}
             {(message.content || message.replied_message) && (
               <div
-                className={`rounded-2xl px-4 py-2 ${
+                className={`rounded-2xl px-4 py-3 ${
                   isOwnMessage
                     ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
                     : "bg-white border border-gray-200 text-gray-900 shadow-sm"
@@ -221,7 +221,7 @@ export default function MessageBubble({
                     } py-1 cursor-pointer hover:opacity-80 transition-opacity`}
                   >
                     <p
-                      className={`text-xs ${
+                      className={`text-sm ${
                         isOwnMessage ? "text-white/80" : "text-gray-600"
                       } font-medium`}
                     >
@@ -238,7 +238,7 @@ export default function MessageBubble({
                         />
                       )}
                       <p
-                        className={`text-sm ${
+                        className={`text-base ${
                           isOwnMessage ? "text-white/90" : "text-gray-700"
                         } truncate flex-1`}
                       >
@@ -248,7 +248,7 @@ export default function MessageBubble({
                   </div>
                 )}
                 {message.content && (
-                  <p className="break-words whitespace-pre-wrap">
+                  <p className="break-words whitespace-pre-wrap text-base">
                     {message.content}
                   </p>
                 )}
@@ -269,7 +269,7 @@ export default function MessageBubble({
                 <button
                   key={emoji}
                   onClick={() => onReaction(message.id, emoji)}
-                  className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-sm ${
                     userReacted
                       ? "bg-pink-100 border border-pink-300"
                       : "bg-gray-100 border border-gray-200"
@@ -284,7 +284,7 @@ export default function MessageBubble({
         )}
 
         {showTimestamp && (
-          <span className="text-xs text-gray-500 mt-1 px-2">
+          <span className="text-sm text-gray-500 mt-1 px-2">
             {format(new Date(message.created_at), "HH:mm")}
           </span>
         )}

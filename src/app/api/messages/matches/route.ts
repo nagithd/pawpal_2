@@ -129,12 +129,21 @@ export async function GET() {
           lastMessage,
           unreadCount: unreadCount,
           createdAt: match.created_at,
+          isOnline,
+          lastActive: ownerData?.last_active || null,
         };
       }),
     );
 
+    // Sắp xếp theo thời gian tin nhắn gần nhất
+    const sortedMatches = matchesWithLastMessage.sort((a, b) => {
+      const timeA = a.lastMessage?.created_at || a.createdAt;
+      const timeB = b.lastMessage?.created_at || b.createdAt;
+      return new Date(timeB).getTime() - new Date(timeA).getTime();
+    });
+
     return NextResponse.json({
-      matches: matchesWithLastMessage,
+      matches: sortedMatches,
       currentPetId: userPetId,
     });
   } catch (error) {
