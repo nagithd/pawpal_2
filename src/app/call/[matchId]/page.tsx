@@ -31,10 +31,8 @@ function OneToOneCallLayout() {
   );
 
   // Find who is sharing screen
-  const screenShareParticipant = participants.find((p) =>
-    p.isLocalParticipant
-      ? p.screenShareStream
-      : p.publishedTracks.includes("screenShareTrack"),
+  const screenShareParticipant = participants.find(
+    (p) => p.screenShareStream !== undefined,
   );
 
   return (
