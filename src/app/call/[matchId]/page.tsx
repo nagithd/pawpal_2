@@ -90,6 +90,15 @@ export default function CallPage() {
         setCall(videoCall);
         setHasJoined(true);
         setCallStartTime(Date.now());
+
+        // Notify that we successfully joined - this helps clear timeout
+        // Small delay to ensure broadcastChannel is ready
+        setTimeout(() => {
+          if (broadcastChannel) {
+            broadcastChannel.postMessage({ type: "CALL_ACCEPTED" });
+            console.log(" Successfully joined call - Sent CALL_ACCEPTED");
+          }
+        }, 500);
       } catch (error: any) {
         console.error("❌ Call error:", error);
         console.error("Error details:", error.message, error.stack);
@@ -113,9 +122,9 @@ export default function CallPage() {
     };
   }, [matchId, isIncoming, hasJoined]);
 
-  // Listen for when the other participant leaves or joins
+  // Listen for when the other participant leaves
   useEffect(() => {
-    if (!call || !broadcastChannel) return;
+    if (!call) return;
 
     const handleParticipantLeft = () => {
       console.log("👋 Other participant left the call");
@@ -123,43 +132,13 @@ export default function CallPage() {
       handleCallEnd();
     };
 
-    const handleParticipantJoined = () => {
-      console.log("👤 Participant joined, checking count...");
-      // When a participant joins, check current participant count
-      const currentParticipants = call.state.participants;
-      console.log("📊 Current participants count:", currentParticipants.length);
-
-      if (currentParticipants.length >= 2) {
-        // Both people are in the call, clear the timeout
-        broadcastChannel.postMessage({ type: "CALL_ACCEPTED" });
-        console.log(
-          "✅ Both participants joined - Sent CALL_ACCEPTED to clear timeout",
-        );
-      }
-    };
-
     // Listen to call events
     call.on("call.session_participant_left", handleParticipantLeft);
-    call.on("call.session_participant_joined", handleParticipantJoined);
-
-    // Also check on mount if there are already 2 participants
-    setTimeout(() => {
-      const currentParticipants = call.state.participants;
-      console.log(
-        "🔍 Initial check - participants count:",
-        currentParticipants.length,
-      );
-      if (currentParticipants.length >= 2) {
-        broadcastChannel.postMessage({ type: "CALL_ACCEPTED" });
-        console.log("✅ Already have 2 participants - Sent CALL_ACCEPTED");
-      }
-    }, 1000);
 
     return () => {
       call.off("call.session_participant_left", handleParticipantLeft);
-      call.off("call.session_participant_joined", handleParticipantJoined);
     };
-  }, [call, broadcastChannel]);
+  }, [call]);
 
   const handleCallEnd = async () => {
     // Calculate call duration
@@ -245,7 +224,7 @@ export default function CallPage() {
   }
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col h-screen">
+    <div className="fixed inset-0 bg-black z-50 flex flex-col h-[125vh]">
       <StreamVideo client={client}>
         <StreamCall call={call}>
           <StreamTheme>

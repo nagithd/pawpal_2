@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 
     // Create call message - only caller saves, so always show "You called"
     const callTypeText = callType === "video" ? "Video call" : "Voice call";
-    let callMessage = "";
+    let callMessage = `${callTypeText} - ${durationText}`;
     const { data: message, error } = await supabase
       .from("messages")
       .insert({
