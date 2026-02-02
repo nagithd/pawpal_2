@@ -4,6 +4,7 @@ import Image from "next/image";
 import { format } from "date-fns";
 import { useState } from "react";
 import { IoArrowUndoOutline } from "react-icons/io5";
+import ImageModal from "@/components/ImageModal";
 
 interface Message {
   id: string;
@@ -55,6 +56,7 @@ export default function MessageBubble({
   onScrollToMessage,
 }: MessageBubbleProps) {
   const [showReactions, setShowReactions] = useState(false);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
 
   // Group reactions by emoji
   const reactionCounts: Record<
@@ -170,7 +172,10 @@ export default function MessageBubble({
 
         {/* Chỉ có ảnh - không gradient */}
         {message.image_url && !message.content && !message.replied_message ? (
-          <div className="rounded-2xl overflow-hidden">
+          <div
+            className="rounded-2xl overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => setImageModalOpen(true)}
+          >
             <Image
               src={message.image_url}
               alt="Attached image"
@@ -183,7 +188,10 @@ export default function MessageBubble({
           <>
             {/* Ảnh riêng - không có background */}
             {message.image_url && (
-              <div className="mb-2 rounded-2xl overflow-hidden">
+              <div
+                className="mb-2 rounded-2xl overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => setImageModalOpen(true)}
+              >
                 <Image
                   src={message.image_url}
                   alt="Attached image"
@@ -281,6 +289,15 @@ export default function MessageBubble({
           </span>
         )}
       </div>
+
+      {/* Image Modal */}
+      {message.image_url && (
+        <ImageModal
+          isOpen={imageModalOpen}
+          imageUrl={message.image_url}
+          onClose={() => setImageModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

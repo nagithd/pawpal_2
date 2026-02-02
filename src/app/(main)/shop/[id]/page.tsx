@@ -7,6 +7,7 @@ import Image from "next/image";
 import toast from "react-hot-toast";
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
+import ImageModal from "@/components/ImageModal";
 
 type Product = {
   id: string;
@@ -25,6 +26,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
   const [quantity, setQuantity] = useState(1);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
 
   useEffect(() => {
     if (id) fetchProduct();
@@ -75,7 +77,10 @@ export default function ProductDetailPage() {
     <div className="min-h-[125vh] bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 px-6 py-12">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10">
         {/* Ảnh sản phẩm */}
-        <div className="bg-white rounded-2xl p-4 shadow-lg">
+        <div
+          className="bg-white rounded-2xl p-4 shadow-lg cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={() => setImageModalOpen(true)}
+        >
           <Image
             src={product.images?.[0] || "/no-image.png"}
             alt={product.name}
@@ -158,6 +163,15 @@ export default function ProductDetailPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Image Modal */}
+      {product.images?.[0] && (
+        <ImageModal
+          isOpen={imageModalOpen}
+          imageUrl={product.images[0]}
+          onClose={() => setImageModalOpen(false)}
+        />
       )}
     </div>
   );

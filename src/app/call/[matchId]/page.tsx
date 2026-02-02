@@ -19,19 +19,36 @@ import "@stream-io/video-react-sdk/dist/css/styles.css";
 
 // Custom 1-1 call layout component (like Messenger)
 function OneToOneCallLayout() {
-  const { useParticipants, useLocalParticipant } = useCallStateHooks();
+  const { useParticipants, useLocalParticipant, useHasOngoingScreenShare } =
+    useCallStateHooks();
   const participants = useParticipants();
   const localParticipant = useLocalParticipant();
+  const hasScreenShare = useHasOngoingScreenShare();
 
   // Filter out local participant to get remote participant
   const remoteParticipant = participants.find(
     (p) => p.userId !== localParticipant?.userId,
   );
 
+  // Find who is sharing screen
+  const screenShareParticipant = participants.find((p) =>
+    p.isLocalParticipant
+      ? p.screenShareStream
+      : p.publishedTracks.includes("screenShareTrack"),
+  );
+
   return (
     <div className="relative w-full h-full bg-gray-900">
-      {/* Remote video (full screen) */}
-      {remoteParticipant ? (
+      {/* Remote video OR Screen share (full screen) */}
+      {hasScreenShare && screenShareParticipant ? (
+        <div className="w-full h-full">
+          <ParticipantView
+            participant={screenShareParticipant}
+            trackType="screenShareTrack"
+            ParticipantViewUI={null}
+          />
+        </div>
+      ) : remoteParticipant ? (
         <div className="w-full h-full">
           <ParticipantView
             participant={remoteParticipant}
@@ -49,7 +66,7 @@ function OneToOneCallLayout() {
 
       {/* Local video (small overlay - top right) */}
       {localParticipant && (
-        <div className="absolute top-4 right-4 w-32 h-44 md:w-40 md:h-56 rounded-lg overflow-hidden shadow-2xl border-2 border-white/20">
+        <div className="absolute top-4 right-4 w-32 md:w-40 overflow-hidden">
           <ParticipantView
             participant={localParticipant}
             ParticipantViewUI={null}
@@ -199,7 +216,8 @@ export default function CallPage() {
       console.log("📞 Call duration:", duration, "seconds");
 
       // Only save if call lasted more than 0 seconds
-      if (duration > 0) {
+      // AND only the caller (not incoming) saves to avoid duplicate records
+      if (duration > 0 && !isIncoming) {
         try {
           await fetch("/api/messages/call-history", {
             method: "POST",
@@ -208,7 +226,7 @@ export default function CallPage() {
               matchId,
               callType: "video", // Stream.io supports video by default
               duration,
-              isIncoming, // Send who initiated the call
+              isIncoming: false, // Always false since only caller saves
             }),
           });
           console.log("✅ Call history saved");
@@ -274,13 +292,17 @@ export default function CallPage() {
   }
 
   return (
-    <div className="fixed inset-0 bg-black z-50">
+    <div className="fixed inset-0 bg-black z-50 flex flex-col">
       <StreamVideo client={client}>
         <StreamCall call={call}>
           <StreamTheme>
             {/* Use custom 1-1 layout instead of SpeakerLayout */}
-            <OneToOneCallLayout />
-            <CallControls onLeave={handleCallEnd} />
+            <div className="flex-1 overflow-hidden">
+              <OneToOneCallLayout />
+            </div>
+            <div className="flex-shrink-0">
+              <CallControls onLeave={handleCallEnd} />
+            </div>
           </StreamTheme>
         </StreamCall>
       </StreamVideo>

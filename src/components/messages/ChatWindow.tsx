@@ -343,15 +343,12 @@ export default function ChatWindow({
                 return prev;
               }
 
-              // Remove optimistic message if this is the real version
+              // Remove ALL optimistic messages from the same sender when new message arrives
+              // This fixes the duplicate image issue where optimistic has blob URL and real has storage URL
               const withoutOptimistic = prev.filter((m) => {
                 if (!m.isOptimistic) return true;
-                // Remove optimistic if it matches this message's content and sender
-                return !(
-                  m.sender_pet_id === message.sender_pet_id &&
-                  m.content === message.content &&
-                  m.image_url === message.image_url
-                );
+                // Remove any optimistic message from this sender
+                return m.sender_pet_id !== message.sender_pet_id;
               });
               return [...withoutOptimistic, message];
             });

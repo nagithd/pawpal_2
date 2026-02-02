@@ -66,20 +66,9 @@ export async function POST(request: Request) {
       durationText = `${seconds}s`;
     }
 
-    // Create call message based on who initiated
-    // If isIncoming is false, current user called -> "You called [name]"
-    // If isIncoming is true, current user received -> "Incoming call from [name]"
+    // Create call message - only caller saves, so always show "You called"
     const callTypeText = callType === "video" ? "Video call" : "Voice call";
     let callMessage = "";
-
-    if (isIncoming === false) {
-      // Current user initiated the call
-      callMessage = `${callTypeText}: You called ${otherPet?.name || "Unknown"} - ${durationText}`;
-    } else {
-      // Current user received the call
-      callMessage = `${callTypeText}: ${otherPet?.name || "Unknown"} called you - ${durationText}`;
-    }
-
     const { data: message, error } = await supabase
       .from("messages")
       .insert({
