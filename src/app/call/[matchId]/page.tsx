@@ -9,11 +9,56 @@ import {
   StreamTheme,
   StreamVideo,
   StreamVideoClient,
+  ParticipantView,
+  useCallStateHooks,
 } from "@stream-io/video-react-sdk";
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 
 import "@stream-io/video-react-sdk/dist/css/styles.css";
+
+// Custom 1-1 call layout component (like Messenger)
+function OneToOneCallLayout() {
+  const { useParticipants, useLocalParticipant } = useCallStateHooks();
+  const participants = useParticipants();
+  const localParticipant = useLocalParticipant();
+
+  // Filter out local participant to get remote participant
+  const remoteParticipant = participants.find(
+    (p) => p.userId !== localParticipant?.userId,
+  );
+
+  return (
+    <div className="relative w-full h-full bg-gray-900">
+      {/* Remote video (full screen) */}
+      {remoteParticipant ? (
+        <div className="w-full h-full">
+          <ParticipantView
+            participant={remoteParticipant}
+            ParticipantViewUI={null}
+          />
+        </div>
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="text-center text-white">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-lg">Waiting for other person...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Local video (small overlay - top right) */}
+      {localParticipant && (
+        <div className="absolute top-4 right-4 w-32 h-44 md:w-40 md:h-56 rounded-lg overflow-hidden shadow-2xl border-2 border-white/20">
+          <ParticipantView
+            participant={localParticipant}
+            ParticipantViewUI={null}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function CallPage() {
   const params = useParams();
@@ -27,6 +72,24 @@ export default function CallPage() {
   const [error, setError] = useState<string | null>(null);
   const [hasJoined, setHasJoined] = useState(false);
   const [callStartTime, setCallStartTime] = useState<number | null>(null);
+  const [broadcastChannel, setBroadcastChannel] =
+    useState<BroadcastChannel | null>(null);
+
+  // Setup broadcast channel for communication with parent window
+  useEffect(() => {
+    const channel = new BroadcastChannel(`call-${matchId}`);
+    setBroadcastChannel(channel);
+
+    channel.onmessage = (event) => {
+      if (event.data.type === "END_CALL") {
+        handleCallEnd();
+      }
+    };
+
+    return () => {
+      channel.close();
+    };
+  }, [matchId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -41,7 +104,6 @@ export default function CallPage() {
 
         const { token, userId, userImage, userName } =
           await getStreamVideoToken();
-
 
         if (!isMounted) return;
 
@@ -73,6 +135,15 @@ export default function CallPage() {
         setCall(videoCall);
         setHasJoined(true);
         setCallStartTime(Date.now());
+
+        // Only send CALL_ACCEPTED when receiver joins (incoming call)
+        // Not when caller joins (outgoing call)
+        if (isIncoming && broadcastChannel) {
+          broadcastChannel.postMessage({ type: "CALL_ACCEPTED" });
+          console.log(
+            "✅ Receiver joined - Sent CALL_ACCEPTED to clear timeout",
+          );
+        }
       } catch (error: any) {
         console.error("❌ Call error:", error);
         console.error("Error details:", error.message, error.stack);
@@ -95,6 +166,24 @@ export default function CallPage() {
       }
     };
   }, [matchId, isIncoming, hasJoined]);
+
+  // Listen for when the other participant leaves
+  useEffect(() => {
+    if (!call) return;
+
+    const handleParticipantLeft = () => {
+      console.log("👋 Other participant left the call");
+      // End call immediately when other person leaves
+      handleCallEnd();
+    };
+
+    // Listen to call events
+    call.on("call.session_participant_left", handleParticipantLeft);
+
+    return () => {
+      call.off("call.session_participant_left", handleParticipantLeft);
+    };
+  }, [call]);
 
   const handleCallEnd = async () => {
     // Calculate call duration
@@ -121,6 +210,14 @@ export default function CallPage() {
           console.error("❌ Error saving call history:", error);
         }
       }
+    }
+
+    // Notify parent window that call ended
+    if (broadcastChannel) {
+      broadcastChannel.postMessage({
+        type: "CALL_ENDED",
+        duration,
+      });
     }
 
     window.close();
@@ -175,7 +272,8 @@ export default function CallPage() {
       <StreamVideo client={client}>
         <StreamCall call={call}>
           <StreamTheme>
-            <SpeakerLayout />
+            {/* Use custom 1-1 layout instead of SpeakerLayout */}
+            <OneToOneCallLayout />
             <CallControls onLeave={handleCallEnd} />
           </StreamTheme>
         </StreamCall>

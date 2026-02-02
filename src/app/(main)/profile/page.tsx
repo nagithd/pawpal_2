@@ -327,17 +327,17 @@ export default function ProfilePage() {
 
   if (loading && !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-[125vh] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <p className="text-gray-600">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-20">
+    <div className="min-h-[125vh] bg-gradient-to-br from-gray-50 to-gray-100 pb-20">
       <div className="max-w-4xl mx-auto p-6">
         {/* User Profile Section */}
-        <div className="card-swipe mb-6 p-4">
+        <div className="mb-6 p-4">
           <h2 className="text-2xl font-bold bg-clip-text text-gray-900 mb-6">
             Thông tin cá nhân
           </h2>
@@ -442,7 +442,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Pets Section */}
-        <div className="card-swipe p-4">
+        <div className="p-4">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold  bg-clip-text text-transparent">
               Thú cưng của tôi

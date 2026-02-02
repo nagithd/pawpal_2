@@ -22,6 +22,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [userAvatar, setUserAvatar] = useState<File | null>(null);
   const [userAvatarPreview, setUserAvatarPreview] = useState<string>("");
@@ -159,6 +160,7 @@ export default function RegisterPage() {
           email: email,
           full_name: fullName,
           phone: phone,
+          address: address,
           avatar_url: avatarUrl,
         },
       ]);
@@ -190,34 +192,34 @@ export default function RegisterPage() {
         }
       }
 
-      toast.success("Đăng ký thành công!");
+      toast.success("Register success!");
       router.push("/login");
       router.refresh();
     } catch (error: any) {
       console.error("Register error:", error);
-      toast.error(error.message || "Đăng ký thất bại");
+      toast.error(error.message || "Register failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 py-12 px-4">
-      <div className="w-full max-w-md px-8 py-10 bg-white rounded-3xl shadow-2xl">
+    <div className="min-h-[125vh] flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 py-12 px-4">
+      <div className="w-full max-w-4xl px-8 py-10 bg-white rounded-3xl shadow-2xl">
         {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent flex items-center justify-center gap-2">
             <GiPawHeart className="text-5xl" /> PawPal
           </h1>
-          <p className="text-gray-600 mt-2"> Tạo tài khoản mới</p>
+          <p className="text-gray-600 mt-2"> Create a new account</p>
         </div>
 
         {/* Register Form */}
         <form onSubmit={handleRegister} className="space-y-5">
           {/* User Avatar */}
-          <div>
+          <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ảnh đại diện (tùy chọn)
+              User Avatar (optional)
             </label>
             <div className="flex items-center gap-4">
               {userAvatarPreview ? (
@@ -252,89 +254,109 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div>
-            <label
-              htmlFor="fullName"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Họ và tên
-            </label>
-            <input
-              id="fullName"
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-xl text-gray-900 bg-gray-100 border border-gray-200 focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
-            />
-          </div>
+          {/* 2 Column Grid for Form Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="fullName"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Full Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="fullName"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                className="w-full px-4 py-3 rounded-xl text-gray-900 bg-gray-100 border border-gray-200 focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+              />
+            </div>
 
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-xl text-gray-900 bg-gray-100 border border-gray-200 focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
-            />
-          </div>
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-3 rounded-xl text-gray-900 bg-gray-100 border border-gray-200 focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+              />
+            </div>
 
-          <div>
-            <label
-              htmlFor="phone"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Số điện thoại
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-xl text-gray-900 bg-gray-100 border border-gray-200 focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
-            />
-          </div>
+            <div>
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Phone Number <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+                className="w-full px-4 py-3 rounded-xl text-gray-900 bg-gray-100 border border-gray-200 focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+              />
+            </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Mật khẩu
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full px-4 py-3 text-gray-900 bg-gray-100 rounded-xl border border-gray-200 focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
-            />
-            <p className="text-xs text-gray-600 mt-1">Tối thiểu 6 ký tự</p>
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                className="w-full px-4 py-3 text-gray-900 bg-gray-100 rounded-xl border border-gray-200 focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+              />
+              <p className="text-xs text-gray-600 mt-1">Minimum 6 characters</p>
+            </div>
+
+            {/* Address takes full width */}
+            <div className="md:col-span-2">
+              <label
+                htmlFor="address"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Address <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                required
+                rows={3}
+                placeholder="Enter your address..."
+                className="w-full px-4 py-3 rounded-xl text-gray-900 bg-gray-100 border border-gray-200 focus:ring-2 focus:ring-pink-400 focus:border-transparent transition resize-none"
+              />
+            </div>
           </div>
 
           {/* Pets Section */}
           <div className="border-t border-gray-300 pt-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Thú cưng của bạn
-              </h3>
-              <button
+              <h3 className="text-lg font-semibold text-gray-900">Your Pets</h3>
+              {/* <button
                 type="button"
                 onClick={addPet}
                 className="flex items-center gap-1 px-3 py-1 bg-pink-500 text-white rounded-lg text-sm hover:bg-pink-600"
               >
-                <IoAdd /> Thêm thú cưng
-              </button>
+                <IoAdd /> Add Pet
+              </button> */}
             </div>
 
             {pets.map((pet, index) => (
@@ -352,14 +374,14 @@ export default function RegisterPage() {
                   </button>
                 )}
 
-                <h4 className="text-sm font-medium text-gray-700 mb-3">
-                  Thú cưng #{index + 1}
-                </h4>
+                {/* <h4 className="text-sm font-medium text-gray-700 mb-3">
+                  Pet #{index + 1}
+                </h4> */}
 
                 {/* Pet Image */}
                 <div className="mb-3">
                   <label className="block text-xs text-gray-600 mb-2">
-                    Ảnh thú cưng *
+                    Pet Image <span className="text-red-500">*</span>
                   </label>
                   {pet.imagePreview ? (
                     <div className="relative inline-block">
@@ -396,7 +418,7 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">
-                      Tên *
+                      Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -408,7 +430,7 @@ export default function RegisterPage() {
                   </div>
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">
-                      Giống *
+                      Breed <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -422,7 +444,7 @@ export default function RegisterPage() {
                   </div>
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">
-                      Tuổi *
+                      Age <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -437,7 +459,7 @@ export default function RegisterPage() {
                   </div>
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">
-                      Loài *
+                      Species <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={pet.species}
@@ -447,9 +469,9 @@ export default function RegisterPage() {
                       required
                       className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-pink-400 focus:border-transparent"
                     >
-                      <option value="dog">Chó</option>
-                      <option value="cat">Mèo</option>
-                      <option value="other">Khác</option>
+                      <option value="dog">Dog</option>
+                      <option value="cat">Cat</option>
+                      <option value="other">Other</option>
                     </select>
                   </div>
                 </div>
@@ -462,19 +484,19 @@ export default function RegisterPage() {
             disabled={loading}
             className="w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-xl hover:from-pink-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Đang đăng ký..." : "Đăng ký"}
+            {loading ? "Registering..." : "Register"}
           </button>
         </form>
 
         {/* Divider */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Đã có tài khoản?{" "}
+            Already have an account?{" "}
             <Link
               href="/login"
               className="text-pink-500 hover:text-pink-600 font-semibold"
             >
-              Đăng nhập
+              Login
             </Link>
           </p>
         </div>

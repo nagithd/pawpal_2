@@ -56,7 +56,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
+    <div className="min-h-[125vh] flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
       <div className="w-full max-w-md px-8 py-10 bg-white rounded-3xl shadow-2xl">
         {/* Logo */}
         <div className="text-center mb-8">
