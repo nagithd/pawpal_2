@@ -225,8 +225,22 @@ export default function ChatWindow({
     if (!hasMore || isLoadingMore || messages.length === 0) return;
 
     setIsLoadingMore(true);
+    const container = messagesContainerRef.current;
+    const oldScrollHeight = container?.scrollHeight || 0;
+    const oldScrollTop = container?.scrollTop || 0;
+
     const oldestMessage = messages[0];
     await loadMessages(oldestMessage.created_at);
+
+    // Restore scroll position after loading more messages
+    setTimeout(() => {
+      if (container) {
+        const newScrollHeight = container.scrollHeight;
+        container.scrollTop =
+          oldScrollTop + (newScrollHeight - oldScrollHeight);
+      }
+    }, 0);
+
     setIsLoadingMore(false);
   };
 
@@ -559,14 +573,14 @@ export default function ChatWindow({
       }
 
       // Set timeout: auto-end call after 60 seconds if not answered
-      callTimeoutRef.current = setTimeout(() => {
-        if (callWindowRef.current && !callWindowRef.current.closed) {
-          callWindowRef.current.close();
-        }
-        setCallStatus("idle");
-        callBroadcastRef.current?.close();
-        alert("Call timed out - no answer");
-      }, 60000);
+      // callTimeoutRef.current = setTimeout(() => {
+      //   if (callWindowRef.current && !callWindowRef.current.closed) {
+      //     callWindowRef.current.close();
+      //   }
+      //   setCallStatus("idle");
+      //   callBroadcastRef.current?.close();
+      //   alert("Call timed out - no answer");
+      // }, 60000);
 
       // Cleanup channel sau khi gửi
       setTimeout(() => channel.unsubscribe(), 1000);
@@ -799,6 +813,9 @@ export default function ChatWindow({
     // Add optimistic message to UI
     setMessages((prev) => [...prev, optimisticMessage]);
     setIsSending(true);
+
+    // Scroll to bottom to show new message
+    setTimeout(() => scrollToBottom(false), 50);
 
     try {
       let imageUrl = null;

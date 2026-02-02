@@ -224,20 +224,24 @@ export default function CallPage() {
   }
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col h-[125vh]">
-      <StreamVideo client={client}>
-        <StreamCall call={call}>
-          <StreamTheme>
-            {/* Use SpeakerLayout - it handles screen sharing automatically */}
-            <div className="flex-1 min-h-0">
-              <SpeakerLayout participantsBarPosition="top" />
-            </div>
-            <div className="flex-shrink-0 pb-safe">
-              <CallControls onLeave={handleCallEnd} />
-            </div>
-          </StreamTheme>
-        </StreamCall>
-      </StreamVideo>
+    <div className="fixed inset-0 bg-black z-50 h-screen flex flex-col">
+      <div className="h-full flex flex-col">
+        <StreamVideo client={client}>
+          <StreamCall call={call}>
+            <StreamTheme>
+              <div className="h-full flex flex-col">
+                {/* Use SpeakerLayout - it handles screen sharing automatically */}
+                <div className="flex-1 min-h-0 overflow-hidden">
+                  <SpeakerLayout participantsBarPosition="top" />
+                </div>
+                <div className="flex-shrink-0">
+                  <CallControls onLeave={handleCallEnd} />
+                </div>
+              </div>
+            </StreamTheme>
+          </StreamCall>
+        </StreamVideo>
+      </div>
     </div>
   );
 }
