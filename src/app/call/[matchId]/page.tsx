@@ -9,71 +9,11 @@ import {
   StreamTheme,
   StreamVideo,
   StreamVideoClient,
-  ParticipantView,
-  useCallStateHooks,
 } from "@stream-io/video-react-sdk";
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 
 import "@stream-io/video-react-sdk/dist/css/styles.css";
-
-// Custom 1-1 call layout component (like Messenger)
-function OneToOneCallLayout() {
-  const { useParticipants, useLocalParticipant, useHasOngoingScreenShare } =
-    useCallStateHooks();
-  const participants = useParticipants();
-  const localParticipant = useLocalParticipant();
-  const hasScreenShare = useHasOngoingScreenShare();
-
-  // Filter out local participant to get remote participant
-  const remoteParticipant = participants.find(
-    (p) => p.userId !== localParticipant?.userId,
-  );
-
-  // Find who is sharing screen
-  const screenShareParticipant = participants.find(
-    (p) => p.screenShareStream !== undefined,
-  );
-
-  return (
-    <div className="relative w-full h-full bg-gray-900">
-      {/* Remote video OR Screen share (full screen) */}
-      {hasScreenShare && screenShareParticipant ? (
-        <div className="w-full h-full">
-          <ParticipantView
-            participant={screenShareParticipant}
-            trackType="screenShareTrack"
-            ParticipantViewUI={null}
-          />
-        </div>
-      ) : remoteParticipant ? (
-        <div className="w-full h-full">
-          <ParticipantView
-            participant={remoteParticipant}
-            ParticipantViewUI={null}
-          />
-        </div>
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <div className="text-center text-white">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-lg">Waiting for other person...</p>
-          </div>
-        </div>
-      )}
-
-      {/* Local video (small overlay - top right) */}
-      {localParticipant && (
-        <div className="absolute top-4 right-4 w-32 md:w-40 overflow-hidden">
-          <ParticipantView
-            participant={localParticipant}
-            ParticipantViewUI={null}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function CallPage() {
   const params = useParams();
@@ -173,9 +113,9 @@ export default function CallPage() {
     };
   }, [matchId, isIncoming, hasJoined]);
 
-  // Listen for when the other participant leaves
+  // Listen for when the other participant leaves or joins
   useEffect(() => {
-    if (!call) return;
+    if (!call || !broadcastChannel) return;
 
     const handleParticipantLeft = () => {
       console.log("👋 Other participant left the call");
@@ -184,21 +124,36 @@ export default function CallPage() {
     };
 
     const handleParticipantJoined = () => {
-      // When a participant joins, check if we have 2 people now
-      call.state.participants$.subscribe((participants) => {
-        if (participants.length >= 2 && broadcastChannel) {
-          // Both people are in the call, clear the timeout
-          broadcastChannel.postMessage({ type: "CALL_ACCEPTED" });
-          console.log(
-            "✅ Both participants joined - Sent CALL_ACCEPTED to clear timeout",
-          );
-        }
-      });
+      console.log("👤 Participant joined, checking count...");
+      // When a participant joins, check current participant count
+      const currentParticipants = call.state.participants;
+      console.log("📊 Current participants count:", currentParticipants.length);
+
+      if (currentParticipants.length >= 2) {
+        // Both people are in the call, clear the timeout
+        broadcastChannel.postMessage({ type: "CALL_ACCEPTED" });
+        console.log(
+          "✅ Both participants joined - Sent CALL_ACCEPTED to clear timeout",
+        );
+      }
     };
 
     // Listen to call events
     call.on("call.session_participant_left", handleParticipantLeft);
     call.on("call.session_participant_joined", handleParticipantJoined);
+
+    // Also check on mount if there are already 2 participants
+    setTimeout(() => {
+      const currentParticipants = call.state.participants;
+      console.log(
+        "🔍 Initial check - participants count:",
+        currentParticipants.length,
+      );
+      if (currentParticipants.length >= 2) {
+        broadcastChannel.postMessage({ type: "CALL_ACCEPTED" });
+        console.log("✅ Already have 2 participants - Sent CALL_ACCEPTED");
+      }
+    }, 1000);
 
     return () => {
       call.off("call.session_participant_left", handleParticipantLeft);
@@ -290,15 +245,15 @@ export default function CallPage() {
   }
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
+    <div className="fixed inset-0 bg-black z-50 flex flex-col h-screen">
       <StreamVideo client={client}>
         <StreamCall call={call}>
           <StreamTheme>
-            {/* Use custom 1-1 layout instead of SpeakerLayout */}
-            <div className="flex-1 overflow-hidden">
-              <OneToOneCallLayout />
+            {/* Use SpeakerLayout - it handles screen sharing automatically */}
+            <div className="flex-1 min-h-0">
+              <SpeakerLayout participantsBarPosition="top" />
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 pb-safe">
               <CallControls onLeave={handleCallEnd} />
             </div>
           </StreamTheme>
