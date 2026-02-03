@@ -77,6 +77,10 @@ export default function ChatWindow({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isOtherTyping, setIsOtherTyping] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
+  const [uploadingMessages, setUploadingMessages] = useState<
+    Array<{ id: string; preview: string; content: string | null }>
+  >([]);
+  const [loadingConversation, setLoadingConversation] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const initialLoadDoneRef = useRef<Set<string>>(new Set()); // Track which matches have been initially loaded
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -117,10 +121,10 @@ export default function ChatWindow({
   useEffect(() => {
     if (match) {
       const matchId = match.matchId;
-      
+
       // Check if this match has been initially loaded
       const alreadyLoaded = initialLoadDoneRef.current.has(matchId);
-      
+
       if (alreadyLoaded) {
         // Already loaded, don't fetch again - just restore from cache
         const cachedMessages = messageCache.get(matchId);
@@ -130,6 +134,7 @@ export default function ChatWindow({
           setTimeout(() => scrollToBottom(true), 50);
         }
         setIsLoadingMore(false);
+        setLoadingConversation(false);
         // Still need to subscribe and mark as read
         markMessagesAsRead();
         subscribeToMessages();
@@ -137,18 +142,19 @@ export default function ChatWindow({
         subscribeToTyping();
         return;
       }
-      
+
       // Mark as loaded
       initialLoadDoneRef.current.add(matchId);
-      
+
       // First time loading this match
       const cachedMessages = messageCache.get(matchId);
-      
+
       if (cachedMessages) {
         // Load from cache immediately - no flash
         setMessages(cachedMessages);
         setHasMore(cachedMessages.length >= MESSAGES_PER_PAGE);
-        
+        setLoadingConversation(false);
+
         // Load reactions then scroll (to prevent jump)
         loadReactions().then(() => {
           setTimeout(() => scrollToBottom(true), 50);
@@ -157,13 +163,15 @@ export default function ChatWindow({
         // Reset state khi đổi conversation (only if no cache)
         setMessages([]);
         setHasMore(true);
-        
+        setLoadingConversation(true);
+
         // Load messages and reactions in parallel, then scroll
         Promise.all([loadMessages(), loadReactions()]).then(() => {
+          setLoadingConversation(false);
           setTimeout(() => scrollToBottom(true), 50);
         });
       }
-      
+
       setIsLoadingMore(false);
 
       // Always mark as read and subscribe
@@ -414,20 +422,51 @@ export default function ChatWindow({
                 return prev;
               }
 
-              // Remove ALL optimistic messages from the same sender when new message arrives
-              // This fixes the duplicate image issue where optimistic has blob URL and real has storage URL
+              // Remove ONLY the matching optimistic message
               const withoutOptimistic = prev.filter((m) => {
                 if (!m.isOptimistic) return true;
-                // Remove any optimistic message from this sender
-                return m.sender_pet_id !== message.sender_pet_id;
+                if (m.sender_pet_id !== message.sender_pet_id) return true;
+
+                // Remove if content matches (text message)
+                if (
+                  m.content &&
+                  message.content &&
+                  m.content === message.content
+                ) {
+                  return false;
+                }
+
+                // Remove if both are image-only messages (optimistic has blob URL, real has storage URL)
+                if (
+                  m.image_url &&
+                  message.image_url &&
+                  !m.content &&
+                  !message.content
+                ) {
+                  return false;
+                }
+
+                // Remove if both have same content AND both have images
+                if (
+                  m.content &&
+                  message.content &&
+                  m.content === message.content &&
+                  m.image_url &&
+                  message.image_url
+                ) {
+                  return false;
+                }
+
+                // Keep other optimistic messages (e.g., if user sent multiple messages quickly)
+                return true;
               });
               const newMessages = [...withoutOptimistic, message];
-              
+
               // Update cache
               if (match) {
                 messageCache.set(match.matchId, newMessages);
               }
-              
+
               return newMessages;
             });
 
@@ -458,19 +497,85 @@ export default function ChatWindow({
     }
 
     reactionsChannelRef.current = supabase
-      .channel(`reactions:${match.matchId}`, {
-        config: { broadcast: { self: false } },
-      })
+      .channel(`reactions:${match.matchId}`)
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
           schema: "public",
           table: "message_reactions",
         },
-        async () => {
-          // Reload all reactions when any change happens
-          await loadReactions();
+        async (payload: any) => {
+          const newReaction = payload.new;
+          setReactions((prev) => {
+            const messageReactions = prev[newReaction.message_id] || [];
+            // Skip if it's our own optimistic update (already added)
+            if (
+              messageReactions.some(
+                (r) =>
+                  r.user_id === newReaction.user_id &&
+                  r.reaction === newReaction.reaction,
+              )
+            ) {
+              return prev;
+            }
+            return {
+              ...prev,
+              [newReaction.message_id]: [
+                ...messageReactions,
+                {
+                  user_id: newReaction.user_id,
+                  reaction: newReaction.reaction,
+                },
+              ],
+            };
+          });
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "message_reactions",
+        },
+        async (payload: any) => {
+          const updated = payload.new;
+          setReactions((prev) => {
+            const messageReactions = prev[updated.message_id] || [];
+            return {
+              ...prev,
+              [updated.message_id]: messageReactions.map((r) =>
+                r.user_id === updated.user_id
+                  ? { ...r, reaction: updated.reaction }
+                  : r,
+              ),
+            };
+          });
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "message_reactions",
+        },
+        async (payload: any) => {
+          const deleted = payload.old;
+          setReactions((prev) => {
+            const messageReactions = prev[deleted.message_id] || [];
+            return {
+              ...prev,
+              [deleted.message_id]: messageReactions.filter(
+                (r) =>
+                  !(
+                    r.user_id === deleted.user_id &&
+                    r.reaction === deleted.reaction
+                  ),
+              ),
+            };
+          });
         },
       )
       .subscribe();
@@ -842,44 +947,75 @@ export default function ChatWindow({
     const imageToSend = selectedImage;
     const imagePreviewToShow = imagePreview;
     const replyingToMessage = replyingTo;
+    const uploadId = `upload-${Date.now()}`;
 
-    // Clear input immediately (optimistic UI)
+    // Clear input immediately
     setNewMessage("");
     handleRemoveImage();
     cancelReply();
 
-    // Create optimistic message
-    const optimisticMessage: Message = {
-      id: `temp-${Date.now()}`,
-      content: messageContent || null,
-      image_url: imagePreviewToShow,
-      sender_pet_id: currentPetId,
-      reply_to_message_id: replyingToMessage?.id || null,
-      is_read: false,
-      created_at: new Date().toISOString(),
-      isOptimistic: true,
-      sender: {
-        id: currentPetId,
-        name: "You",
-        avatar_url: null,
-      },
-      replied_message: replyingToMessage
-        ? {
-            id: replyingToMessage.id,
-            content: replyingToMessage.content,
-            image_url: replyingToMessage.image_url,
-            sender_pet_id: replyingToMessage.sender_pet_id,
-            sender: replyingToMessage.sender,
-          }
-        : null,
-    };
-
-    // Add optimistic message to UI
-    setMessages((prev) => [...prev, optimisticMessage]);
     setIsSending(true);
 
-    // Scroll to bottom to show new message
-    setTimeout(() => scrollToBottom(false), 50);
+    // If sending image, show loading state instead of optimistic message
+    if (imageToSend) {
+      console.log("Adding upload message:", {
+        id: uploadId,
+        preview: imagePreviewToShow,
+        content: messageContent,
+      });
+      setUploadingMessages((prev) => {
+        const updated = [
+          ...prev,
+          {
+            id: uploadId,
+            preview: imagePreviewToShow!,
+            content: messageContent || null,
+          },
+        ];
+        console.log("Updated uploadingMessages:", updated);
+        return updated;
+      });
+      // Force scroll after state update
+      requestAnimationFrame(() => {
+        scrollToBottom(false);
+      });
+    } else {
+      // Text-only: create optimistic message
+      const optimisticMessage: Message = {
+        id: `temp-${Date.now()}`,
+        content: messageContent,
+        image_url: null,
+        sender_pet_id: currentPetId,
+        reply_to_message_id: replyingToMessage?.id || null,
+        is_read: false,
+        created_at: new Date().toISOString(),
+        isOptimistic: true,
+        sender: {
+          id: currentPetId,
+          name: "You",
+          avatar_url: null,
+        },
+        replied_message: replyingToMessage
+          ? {
+              id: replyingToMessage.id,
+              content: replyingToMessage.content,
+              image_url: replyingToMessage.image_url,
+              sender_pet_id: replyingToMessage.sender_pet_id,
+              sender: replyingToMessage.sender,
+            }
+          : null,
+      };
+      setMessages((prev) => {
+        const newMessages = [...prev, optimisticMessage];
+        if (match) {
+          messageCache.set(match.matchId, newMessages);
+        }
+        return newMessages;
+      });
+      requestAnimationFrame(() => {
+        scrollToBottom(false);
+      });
+    }
 
     try {
       let imageUrl = null;
@@ -899,12 +1035,21 @@ export default function ChatWindow({
       });
 
       if (!response.ok) {
-        // Remove optimistic message on error
-        setMessages((prev) =>
-          prev.filter((m) => m.id !== optimisticMessage.id),
-        );
         console.error("Failed to send message");
+        // Remove from uploading if it was an image
+        if (imageToSend) {
+          setUploadingMessages((prev) => prev.filter((m) => m.id !== uploadId));
+        } else {
+          // Remove optimistic text message on error
+          setMessages((prev) =>
+            prev.filter((m) => !m.isOptimistic || m.content !== messageContent),
+          );
+        }
       } else {
+        // Remove from uploading when successful
+        if (imageToSend) {
+          setUploadingMessages((prev) => prev.filter((m) => m.id !== uploadId));
+        }
         // Notify parent about new message for conversation list update
         const result = await response.json();
         if (onMessageSent && result.message) {
@@ -914,8 +1059,14 @@ export default function ChatWindow({
       // Real message will be added via realtime subscription
     } catch (error) {
       console.error("Error sending message:", error);
-      // Remove optimistic message on error
-      setMessages((prev) => prev.filter((m) => m.id !== optimisticMessage.id));
+      // Remove from uploading or optimistic on error
+      if (imageToSend) {
+        setUploadingMessages((prev) => prev.filter((m) => m.id !== uploadId));
+      } else {
+        setMessages((prev) =>
+          prev.filter((m) => !m.isOptimistic || m.content !== messageContent),
+        );
+      }
     } finally {
       setIsSending(false);
     }
@@ -984,12 +1135,59 @@ export default function ChatWindow({
           msOverflowStyle: "none",
         }}
       >
-        {isLoadingMore && (
-          <div className="text-center py-2">
-            <span className="text-sm text-gray-500">Loading ...</span>
+        {loadingConversation ? (
+          <div className="space-y-4 animate-pulse">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <div key={n} className={`flex items-end gap-2 ${n % 2 === 0 ? '' : 'flex-row-reverse'}`}>
+                <div className={`w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 ${n % 2 === 0 ? '' : 'hidden'}`}></div>
+                <div className={`max-w-[70%] ${n % 2 === 0 ? '' : 'items-end flex flex-col'}`}>
+                  <div className={`h-16 rounded-2xl ${n % 2 === 0 ? 'bg-gray-300' : 'bg-pink-200'}`} style={{ width: `${150 + (n * 30)}px` }}></div>
+                  <div className="h-3 bg-gray-200 rounded w-16 mt-1"></div>
+                </div>
+              </div>
+            ))}
           </div>
-        )}
-        {messages.map((message, index) => {
+        ) : (
+          <>
+            {isLoadingMore && (
+              <div className="text-center py-2">
+                <span className="text-sm text-gray-500">Loading ...</span>
+              </div>
+            )}
+            {/* Uploading Messages (Loading State) */}
+            {uploadingMessages.map((uploading) => (
+              <div
+                key={uploading.id}
+                className="flex items-end gap-2 mb-4 flex-row-reverse"
+              >
+                <div className="max-w-[70%] items-end flex flex-col">
+                  {uploading.preview && (
+                    <div className="relative rounded-2xl overflow-hidden mb-2">
+                      <img
+                        src={uploading.preview}
+                        alt="Uploading"
+                        className="rounded-2xl object-cover opacity-50 max-w-[300px] max-h-[300px]"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                        <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    </div>
+                  )}
+                  {uploading.content && (
+                    <div className="rounded-2xl px-4 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white opacity-70">
+                      <p className="break-words whitespace-pre-wrap text-base">
+                        {uploading.content}
+                      </p>
+                    </div>
+                  )}
+                  <span className="text-sm text-gray-500 mt-1 px-2">
+                    Đang gửi...
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            {messages.map((message, index) => {
           const nextMessage = messages[index + 1];
           const prevMessage = messages[index - 1];
 
@@ -1035,8 +1233,10 @@ export default function ChatWindow({
               />
             </div>
           );
-        })}
-        <div ref={messagesEndRef} />
+            })}
+            <div ref={messagesEndRef} />
+          </>
+        )}
       </div>
 
       {/* Reply Preview */}

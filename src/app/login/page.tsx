@@ -57,13 +57,13 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-[125vh] flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
-      <div className="w-full max-w-md px-8 py-10 bg-white rounded-3xl shadow-2xl">
+      <div className="w-full max-w-2xl px-8 py-10 bg-white rounded-3xl shadow-2xl">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent flex items-center justify-center gap-2">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent flex items-center justify-center gap-2">
             <GiPawHeart className="text-5xl" /> PawPal
           </h1>
-          <p className="text-gray-600 mt-2">Find friends for your pets</p>
+          <p className="text-gray-600 mt-4 text-lg">Find friends for your pets</p>
         </div>
 
         {/* Login Form */}
@@ -71,7 +71,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-lg font-medium text-gray-700 mb-2"
             >
               Email
             </label>
@@ -81,14 +81,14 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-xl text-gray-900 bg-gray-100 border border-gray-200 focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+              className="w-full px-4 py-3 text-lg rounded-xl text-gray-900 bg-gray-100 border border-gray-200 focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-lg font-medium text-gray-700 mb-2"
             >
               Password
             </label>
@@ -98,7 +98,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-xl text-gray-900 bg-gray-100 border border-gray-200 focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+              className="w-full text-lg px-4 py-3 rounded-xl text-gray-900 bg-gray-100 border border-gray-200 focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
             />
           </div>
 
@@ -113,7 +113,7 @@ export default function LoginPage() {
 
         {/* Divider */}
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-lg text-gray-600">
             Don't have an account?{" "}
             <Link
               href="/register"

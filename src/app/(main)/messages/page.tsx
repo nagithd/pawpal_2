@@ -224,10 +224,54 @@ export default function MessagesPage() {
 
   if (isLoading) {
     return (
-      <div className="h-[calc(125vh-65px)] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Loading...</p>
+      <div className="min-h-[calc(125vh-65px)] bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="h-[calc(125vh-65px)] flex">
+          {/* Left Sidebar - Conversation List Skeleton */}
+          <div className="w-full md:w-96 bg-white border-r border-gray-200">
+            <div className="p-5 border-b border-gray-200">
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            </div>
+            <div className="overflow-y-auto">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="p-4 border-b border-gray-100">
+                  <div className="animate-pulse flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right - Chat Window Skeleton */}
+          <div className="flex-1 flex flex-col bg-white">
+            <div className="p-5 border-b border-gray-200">
+              <div className="animate-pulse flex items-center gap-4">
+                <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+              </div>
+            </div>
+            <div className="flex-1 p-4 space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className={`flex ${i % 2 === 0 ? "justify-end" : "justify-start"}`}
+                >
+                  <div className="animate-pulse">
+                    <div className="h-16 bg-gray-200 rounded-2xl w-64"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="p-4 border-t border-gray-200">
+              <div className="animate-pulse h-12 bg-gray-200 rounded-2xl"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -235,7 +279,7 @@ export default function MessagesPage() {
 
   if (matches.length === 0) {
     return (
-      <div className="h-[calc(125vh-65px)] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-[calc(125vh-65px)] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
           <IoChatbubbles className="text-8xl mb-6 mx-auto text-pink-500" />
           <h1 className="text-3xl font-bold text-gray-900 mb-4">

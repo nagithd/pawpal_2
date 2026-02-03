@@ -72,7 +72,16 @@ export default function ProductDetailPage() {
   };
 
   if (!product)
-    return <p className="text-center text-gray-600 mt-20">Loading...</p>;
+    return (
+      <div className="min-h-[125vh] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    );
   return (
     <div className="min-h-[125vh] bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 px-6 py-12">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10">

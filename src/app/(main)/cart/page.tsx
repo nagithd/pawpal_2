@@ -9,6 +9,7 @@ import { Trash2 } from "lucide-react";
 export default function CartPage() {
   const supabase = createClient();
   const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
@@ -19,10 +20,14 @@ export default function CartPage() {
   }, []);
 
   const fetchCart = async () => {
+    setLoading(true);
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     const { data } = await supabase
       .from("cart_items")
@@ -30,6 +35,7 @@ export default function CartPage() {
       .eq("user_id", user.id);
 
     setItems(data || []);
+    setLoading(false);
   };
 
   const fetchUserInfo = async () => {
@@ -192,17 +198,58 @@ export default function CartPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-[125vh] bg-gradient-to-br from-gray-50 to-gray-100 px-6 py-12">
+        <div className="animate-pulse">
+          <div className="h-10 bg-gray-200 rounded w-1/3 mb-10"></div>
+          <div className="grid lg:grid-cols-3 gap-10">
+            {/* Left - Product List Skeleton */}
+            <div className="lg:col-span-2 space-y-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex gap-4 bg-white p-4 rounded-2xl shadow-lg">
+                  <div className="w-20 h-20 bg-gray-200 rounded-lg"></div>
+                  <div className="flex-1">
+                    <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                  </div>
+                  <div className="w-24 space-y-2">
+                    <div className="h-10 bg-gray-200 rounded"></div>
+                    <div className="h-10 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Right - Summary Skeleton */}
+            <div className="bg-white p-6 rounded-2xl shadow-lg h-fit sticky top-24">
+              <div className="h-6 bg-gray-200 rounded w-1/2 mb-6"></div>
+              <div className="space-y-4 mb-6">
+                <div className="h-4 bg-gray-200 rounded"></div>
+                <div className="h-4 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+              </div>
+              <div className="h-12 bg-gray-200 rounded-xl"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-[125vh] bg-gradient-to-br from-gray-50 to-gray-100 px-6 py-12">
       <h1 className="text-4xl font-bold mb-10 bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-        🛒 Giỏ hàng của bạn
+        🛒 Your Cart
       </h1>
 
       <div className="grid lg:grid-cols-3 gap-10">
-        {/* Danh sách sản phẩm */}
+        {/* Product List */}
         <div className="lg:col-span-2 space-y-6">
           {items.length === 0 && (
-            <p className="text-gray-600">Giỏ hàng đang trống...</p>
+            <p className="text-gray-600">Empty Cart...</p>
           )}
 
           {items.map((item) => (

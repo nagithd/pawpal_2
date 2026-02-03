@@ -22,6 +22,7 @@ export default function CreatePostModal({
   const [selectedPet, setSelectedPet] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingPets, setLoadingPets] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
@@ -34,10 +35,14 @@ export default function CreatePostModal({
   }, [isOpen]);
 
   const loadUserPets = async () => {
+    setLoadingPets(true);
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setLoadingPets(false);
+      return;
+    }
 
     const { data: petsData } = await supabase
       .from("pets")
@@ -51,6 +56,7 @@ export default function CreatePostModal({
         setSelectedPet(petsData[0].id);
       }
     }
+    setLoadingPets(false);
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -225,37 +231,59 @@ export default function CreatePostModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-auto">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6">
+    <div className="fixed inset-0 bg-gray-900 bg-opacity-10 flex items-center justify-center z-50 p-4 overflow-auto">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-[800px] w-full p-6 relative">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-            Tạo bài đăng mới
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+            Create Post
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
+            disabled={loading}
+            className="text-gray-500 hover:text-gray-700 text-4xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ×
           </button>
         </div>
 
-        {pets.length === 0 ? (
+        {loadingPets ? (
+          <div className="space-y-4 animate-pulse">
+            <div>
+              <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+              <div className="flex items-center gap-3 px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg">
+                <div className="w-12 h-12 rounded-full bg-gray-300"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+                  <div className="h-3 bg-gray-300 rounded w-1/3"></div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+              <div className="h-32 bg-gray-200 rounded"></div>
+            </div>
+            <div>
+              <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+              <div className="h-12 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        ) : pets.length === 0 ? (
           <div className="text-center py-8">
-            <GiPawHeart className="text-7xl mx-auto mb-4 text-pink-500" />
+            <GiPawHeart className="text-xl mx-auto mb-4 text-pink-500" />
             <p className="text-gray-600">
-              Bạn chưa có thú cưng nào. Hãy thêm thú cưng trước!
+              You don't have any pets yet. Please add a pet to create a post.
             </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Thú cưng của bạn
+              <label className="block text-lg font-medium text-gray-700 mb-2">
+                Your Pet
               </label>
               <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
                 {selectedPet && pets.find((p) => p.id === selectedPet) && (
                   <>
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                    <div className="w-18 h-18 rounded-full overflow-hidden bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                       {pets.find((p) => p.id === selectedPet)?.avatar_url ? (
                         <img
                           src={
@@ -265,19 +293,19 @@ export default function CreatePostModal({
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="text-white font-bold text-lg">
+                        <span className="text-white font-bold text-1xl">
                           {pets.find((p) => p.id === selectedPet)?.name?.[0] ||
                             "P"}
                         </span>
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-semibold text-gray-900 text-lg">
                         {pets.find((p) => p.id === selectedPet)?.name}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 text-2lg">
                         {pets.find((p) => p.id === selectedPet)?.breed ||
-                          "Thú cưng của bạn"}
+                          "Your pet"}
                       </p>
                     </div>
                   </>
@@ -286,13 +314,13 @@ export default function CreatePostModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nội dung
+              <label className="block text-lg font-medium text-gray-700 mb-2">
+               Content
               </label>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Chia sẻ điều gì đó về thú cưng của bạn..."
+                placeholder="Share something about your pet..."
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-900 bg-gray-100 focus:ring-2 focus:ring-pink-400 focus:border-transparent"
                 rows={5}
                 required
@@ -300,13 +328,13 @@ export default function CreatePostModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Ảnh (Tối đa 4 ảnh)
+              <label className="block text-lg font-medium text-gray-700 mb-2">
+                Images (Up to 4)
               </label>
               <div className="space-y-3">
                 <label className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-pink-400 transition">
                   <IoImageOutline className="text-2xl text-gray-500" />
-                  <span className="text-gray-600">Chọn ảnh</span>
+                  <span className="text-gray-600">Choose images</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -343,8 +371,8 @@ export default function CreatePostModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Video ngắn (Tối đa 60 giây)
+              <label className="block text-lg font-medium text-gray-700 mb-2">
+                Short Video (Up to 60 seconds)
               </label>
               <div className="space-y-3">
                 <label className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-400 transition">
@@ -386,14 +414,14 @@ export default function CreatePostModal({
                 onClick={onClose}
                 className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-semibold hover:from-pink-600 hover:to-purple-700 transition disabled:opacity-50"
               >
-                {loading ? "Đang đăng..." : "Đăng bài"}
+                {loading ? "Posting..." : "Post"}
               </button>
             </div>
           </form>

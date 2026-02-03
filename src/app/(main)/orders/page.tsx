@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
-import { 
-  ChevronDown, 
-  ChevronUp, 
-  Package, 
-  MapPin, 
+import {
+  ChevronDown,
+  ChevronUp,
+  Package,
+  MapPin,
   Phone,
   Calendar,
   CreditCard,
@@ -15,7 +15,7 @@ import {
   CheckCircle2,
   Clock,
   XCircle,
-  ShoppingBag
+  ShoppingBag,
 } from "lucide-react";
 
 type OrderItem = {
@@ -85,7 +85,7 @@ export default function OrdersPage() {
       phone,
       shipping_address
     `,
-        { count: "exact" }
+        { count: "exact" },
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
@@ -127,7 +127,7 @@ export default function OrdersPage() {
           color: "text-emerald-700",
           bg: "bg-emerald-50",
           border: "border-emerald-200",
-          icon: CheckCircle2
+          icon: CheckCircle2,
         };
       case "pending":
         return {
@@ -135,7 +135,7 @@ export default function OrdersPage() {
           color: "text-amber-700",
           bg: "bg-amber-50",
           border: "border-amber-200",
-          icon: Clock
+          icon: Clock,
         };
       case "failed":
         return {
@@ -143,7 +143,7 @@ export default function OrdersPage() {
           color: "text-red-700",
           bg: "bg-red-50",
           border: "border-red-200",
-          icon: XCircle
+          icon: XCircle,
         };
       default:
         return {
@@ -151,7 +151,7 @@ export default function OrdersPage() {
           color: "text-gray-700",
           bg: "bg-gray-50",
           border: "border-gray-200",
-          icon: CreditCard
+          icon: CreditCard,
         };
     }
   };
@@ -164,7 +164,7 @@ export default function OrdersPage() {
           color: "text-blue-700",
           bg: "bg-blue-50",
           border: "border-blue-200",
-          icon: Package
+          icon: Package,
         };
       case "shipping":
         return {
@@ -172,7 +172,7 @@ export default function OrdersPage() {
           color: "text-purple-700",
           bg: "bg-purple-50",
           border: "border-purple-200",
-          icon: Truck
+          icon: Truck,
         };
       case "completed":
         return {
@@ -180,7 +180,7 @@ export default function OrdersPage() {
           color: "text-emerald-700",
           bg: "bg-emerald-50",
           border: "border-emerald-200",
-          icon: CheckCircle2
+          icon: CheckCircle2,
         };
       case "cancelled":
         return {
@@ -188,7 +188,7 @@ export default function OrdersPage() {
           color: "text-red-700",
           bg: "bg-red-50",
           border: "border-red-200",
-          icon: XCircle
+          icon: XCircle,
         };
       default:
         return {
@@ -196,7 +196,7 @@ export default function OrdersPage() {
           color: "text-gray-700",
           bg: "bg-gray-50",
           border: "border-gray-200",
-          icon: Package
+          icon: Package,
         };
     }
   };
@@ -205,11 +205,66 @@ export default function OrdersPage() {
     return (
       <div className="min-h-[125vh] bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-5xl mx-auto">
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center space-y-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
-              <p className="text-gray-600 font-medium">Loading...</p>
-            </div>
+          {/* Header Skeleton */}
+          <div className="mb-8 animate-pulse">
+            <div className="h-10 bg-gray-200 rounded w-1/3 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+
+          {/* Orders List Skeleton */}
+          <div className="space-y-6">
+            {[1].map((i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl shadow-lg overflow-hidden"
+              >
+                <div className="animate-pulse">
+                  {/* Order Header */}
+                  <div className="p-6 border-b border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+                      <div className="h-8 bg-gray-200 rounded-full w-24"></div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="h-4 bg-gray-200 rounded w-32"></div>
+                      <div className="h-4 bg-gray-200 rounded w-40"></div>
+                    </div>
+                  </div>
+
+                  {/* Order Items */}
+                  <div className="p-6">
+                    <div className="space-y-4">
+                      {[1, 2].map((j) => (
+                        <div key={j} className="flex items-center gap-4">
+                          <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
+                          <div className="flex-1">
+                            <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+                            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                          </div>
+                          <div className="h-6 bg-gray-200 rounded w-20"></div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-6 pt-6 border-t border-gray-100">
+                      <div className="flex justify-between items-center">
+                        <div className="h-6 bg-gray-200 rounded w-24"></div>
+                        <div className="h-8 bg-gray-200 rounded w-32"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Pagination Skeleton */}
+          <div className="mt-8 flex justify-center gap-2">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="w-10 h-10 bg-gray-200 rounded-lg animate-pulse"
+              ></div>
+            ))}
           </div>
         </div>
       </div>
@@ -227,9 +282,7 @@ export default function OrdersPage() {
             <h3 className="text-2xl font-semibold text-gray-800 mb-2">
               Do not have orders yet
             </h3>
-            <p className="text-gray-600">
-              Start to shop now!
-            </p>
+            <p className="text-gray-600">Start to shop now!</p>
           </div>
         </div>
       </div>
@@ -241,9 +294,7 @@ export default function OrdersPage() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            My Orders
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Orders</h1>
           <p className="text-gray-600">
             Manage and keep track with your orders
           </p>
@@ -278,13 +329,15 @@ export default function OrdersPage() {
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Calendar className="w-4 h-4" />
-                        <span>{new Date(order.created_at).toLocaleString('vi-VN', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}</span>
+                        <span>
+                          {new Date(order.created_at).toLocaleString("vi-VN", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
                       </div>
                     </div>
 
@@ -292,17 +345,29 @@ export default function OrdersPage() {
                     <div className="flex items-center gap-4">
                       <div className="flex flex-col gap-2">
                         {/* Shipping Status */}
-                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${shippingConfig.bg} ${shippingConfig.border}`}>
-                          <ShippingIcon className={`w-4 h-4 ${shippingConfig.color}`} />
-                          <span className={`text-sm font-medium ${shippingConfig.color}`}>
+                        <div
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${shippingConfig.bg} ${shippingConfig.border}`}
+                        >
+                          <ShippingIcon
+                            className={`w-4 h-4 ${shippingConfig.color}`}
+                          />
+                          <span
+                            className={`text-sm font-medium ${shippingConfig.color}`}
+                          >
                             {shippingConfig.text}
                           </span>
                         </div>
 
                         {/* Payment Status */}
-                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${paymentConfig.bg} ${paymentConfig.border}`}>
-                          <PaymentIcon className={`w-4 h-4 ${paymentConfig.color}`} />
-                          <span className={`text-sm font-medium ${paymentConfig.color}`}>
+                        <div
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${paymentConfig.bg} ${paymentConfig.border}`}
+                        >
+                          <PaymentIcon
+                            className={`w-4 h-4 ${paymentConfig.color}`}
+                          />
+                          <span
+                            className={`text-sm font-medium ${paymentConfig.color}`}
+                          >
                             {paymentConfig.text}
                           </span>
                         </div>
@@ -310,7 +375,9 @@ export default function OrdersPage() {
 
                       {/* Total Price */}
                       <div className="text-right">
-                        <p className="text-sm text-gray-600 mb-1">Total price</p>
+                        <p className="text-sm text-gray-600 mb-1">
+                          Total price
+                        </p>
                         <p className="text-2xl font-bold text-blue-600">
                           {(order.total_price ?? 0).toLocaleString()}₫
                         </p>
@@ -337,14 +404,18 @@ export default function OrdersPage() {
                       <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
                       <div>
                         <p className="text-xs text-gray-500 mb-1">Phone</p>
-                        <p className="text-sm font-medium text-gray-900">{order.phone}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {order.phone}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
                       <div>
                         <p className="text-xs text-gray-500 mb-1">Address</p>
-                        <p className="text-sm font-medium text-gray-900">{order.shipping_address}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {order.shipping_address}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -384,14 +455,19 @@ export default function OrdersPage() {
                               <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <span>Số lượng: {item.quantity}</span>
                                 <span>•</span>
-                                <span>{(item.price ?? 0).toLocaleString()}₫</span>
+                                <span>
+                                  {(item.price ?? 0).toLocaleString()}₫
+                                </span>
                               </div>
                             </div>
 
                             {/* Item Total */}
                             <div className="text-right flex-shrink-0">
                               <p className="text-lg font-semibold text-blue-600">
-                                {((item.price ?? 0) * item.quantity).toLocaleString()}₫
+                                {(
+                                  (item.price ?? 0) * item.quantity
+                                ).toLocaleString()}
+                                ₫
                               </p>
                             </div>
                           </div>
@@ -417,35 +493,37 @@ export default function OrdersPage() {
             </button>
 
             <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
-                // Show first, last, current, and adjacent pages
-                if (
-                  pageNum === 1 ||
-                  pageNum === totalPages ||
-                  (pageNum >= page - 1 && pageNum <= page + 1)
-                ) {
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setPage(pageNum)}
-                      className={`w-10 h-10 rounded-lg font-medium transition-colors ${
-                        page === pageNum
-                          ? "bg-blue-600 text-white"
-                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                } else if (pageNum === page - 2 || pageNum === page + 2) {
-                  return (
-                    <span key={pageNum} className="px-2 text-gray-400">
-                      ...
-                    </span>
-                  );
-                }
-                return null;
-              })}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (pageNum) => {
+                  // Show first, last, current, and adjacent pages
+                  if (
+                    pageNum === 1 ||
+                    pageNum === totalPages ||
+                    (pageNum >= page - 1 && pageNum <= page + 1)
+                  ) {
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setPage(pageNum)}
+                        className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                          page === pageNum
+                            ? "bg-blue-600 text-white"
+                            : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  } else if (pageNum === page - 2 || pageNum === page + 2) {
+                    return (
+                      <span key={pageNum} className="px-2 text-gray-400">
+                        ...
+                      </span>
+                    );
+                  }
+                  return null;
+                },
+              )}
             </div>
 
             <button

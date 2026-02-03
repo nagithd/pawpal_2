@@ -218,7 +218,7 @@ export default function RegisterPage() {
         <form onSubmit={handleRegister} className="space-y-5">
           {/* User Avatar */}
           <div className="col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-md font-medium text-gray-700 mb-2">
               User Avatar (optional)
             </label>
             <div className="flex items-center gap-4">
@@ -259,7 +259,7 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="fullName"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-md font-medium text-gray-700 mb-2"
               >
                 Full Name <span className="text-red-500">*</span>
               </label>
@@ -276,7 +276,7 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-md font-medium text-gray-700 mb-2"
               >
                 Email <span className="text-red-500">*</span>
               </label>
@@ -293,7 +293,7 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="phone"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-md font-medium text-gray-700 mb-2"
               >
                 Phone Number <span className="text-red-500">*</span>
               </label>
@@ -310,7 +310,7 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-md font-medium text-gray-700 mb-2"
               >
                 Password <span className="text-red-500">*</span>
               </label>
@@ -323,14 +323,14 @@ export default function RegisterPage() {
                 minLength={6}
                 className="w-full px-4 py-3 text-gray-900 bg-gray-100 rounded-xl border border-gray-200 focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
               />
-              <p className="text-xs text-gray-600 mt-1">Minimum 6 characters</p>
+              <p className="text-sm text-gray-600 mt-1">Minimum 6 characters</p>
             </div>
 
             {/* Address takes full width */}
             <div className="md:col-span-2">
               <label
                 htmlFor="address"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-md font-medium text-gray-700 mb-2"
               >
                 Address <span className="text-red-500">*</span>
               </label>
@@ -349,7 +349,7 @@ export default function RegisterPage() {
           {/* Pets Section */}
           <div className="border-t border-gray-300 pt-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Your Pets</h3>
+              <h3 className="text-[21px] font-semibold text-gray-900">Your Pets</h3>
               {/* <button
                 type="button"
                 onClick={addPet}
@@ -380,7 +380,7 @@ export default function RegisterPage() {
 
                 {/* Pet Image */}
                 <div className="mb-3">
-                  <label className="block text-xs text-gray-600 mb-2">
+                  <label className="block text-md text-gray-600 mb-2">
                     Pet Image <span className="text-red-500">*</span>
                   </label>
                   {pet.imagePreview ? (
@@ -388,7 +388,7 @@ export default function RegisterPage() {
                       <img
                         src={pet.imagePreview}
                         alt="Pet"
-                        className="w-24 h-24 rounded-lg object-cover"
+                        className="w-30 h-30 rounded-lg object-cover"
                       />
                       <button
                         type="button"
@@ -402,7 +402,7 @@ export default function RegisterPage() {
                       </button>
                     </div>
                   ) : (
-                    <label className="w-24 h-24 rounded-lg bg-gray-200 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-300">
+                    <label className="w-30 h-30 rounded-lg bg-gray-200 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-300">
                       <IoImageOutline className="text-2xl text-gray-500" />
                       <input
                         type="file"
@@ -417,7 +417,7 @@ export default function RegisterPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">
+                    <label className="block text-md text-gray-600 mb-1">
                       Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -429,7 +429,7 @@ export default function RegisterPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">
+                    <label className="block text-md text-gray-600 mb-1">
                       Breed <span className="text-red-500">*</span>
                     </label>
                     <input

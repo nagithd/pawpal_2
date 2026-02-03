@@ -516,10 +516,67 @@ export default function MatchPage() {
 
   if (loading) {
     return (
-      <div className="h-[calc(125vh-65px)] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-pink-500 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Loading...</p>
+      <div className="min-h-[calc(125vh-65px)] bg-gradient-to-br from-gray-50 via-white to-gray-100 overflow-y-auto">
+        <div className="max-w-[1400px] mx-auto px-4 py-8">
+          {/* 3-Column Layout Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Sidebar Skeleton */}
+            <div className="lg:col-span-3 hidden lg:block">
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <div className="animate-pulse">
+                  <div className="h-6 bg-gray-200 rounded w-1/2 mb-6"></div>
+                  <div className="space-y-4">
+                    <div className="h-12 bg-gray-200 rounded-xl"></div>
+                    <div className="h-12 bg-gray-200 rounded-xl"></div>
+                    <div className="h-12 bg-gray-200 rounded-xl"></div>
+                  </div>
+                  <div className="mt-6 h-12 bg-gray-200 rounded-xl"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Center Column - Main Card Skeleton */}
+            <div className="lg:col-span-6">
+              <div className="text-center mb-8 animate-pulse">
+                <div className="h-10 bg-gray-200 rounded w-3/4 mx-auto mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+              </div>
+              <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+                <div className="animate-pulse">
+                  <div className="h-96 bg-gray-200"></div>
+                  <div className="p-6 space-y-4">
+                    <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-full"></div>
+                    <div className="flex gap-4 mt-6">
+                      <div className="flex-1 h-16 bg-gray-200 rounded-full"></div>
+                      <div className="flex-1 h-16 bg-gray-200 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Sidebar Skeleton */}
+            <div className="lg:col-span-3 hidden lg:block">
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <div className="animate-pulse">
+                  <div className="h-6 bg-gray-200 rounded w-2/3 mb-6"></div>
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                        <div className="flex-1">
+                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
