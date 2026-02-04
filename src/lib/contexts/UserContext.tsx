@@ -7,6 +7,7 @@ import type { User } from "@supabase/supabase-js";
 interface UserContextType {
   user: User | null;
   userPet: any | null;
+  userPets: any[];
   loading: boolean;
   refreshUser: () => Promise<void>;
 }
@@ -17,6 +18,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
   const [userPet, setUserPet] = useState<any | null>(null);
+  const [userPets, setUserPets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadUser = async () => {
@@ -29,27 +31,31 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       if (authUser) {
         setUser(authUser);
 
-        // Load user's first active pet
-        const { data: petData } = await supabase
+        // Load all user's active pets
+        const { data: petsData } = await supabase
           .from("pets")
           .select("*")
           .eq("owner_id", authUser.id)
           .eq("is_active", true)
-          .order("created_at", { ascending: true })
-          .limit(1)
-          .maybeSingle();
+          .order("created_at", { ascending: true });
 
-        if (petData) {
-          setUserPet(petData);
+        if (petsData && petsData.length > 0) {
+          setUserPets(petsData);
+          setUserPet(petsData[0]); // First pet as default
+        } else {
+          setUserPets([]);
+          setUserPet(null);
         }
       } else {
         setUser(null);
         setUserPet(null);
+        setUserPets([]);
       }
     } catch (error) {
       console.error("Error loading user:", error);
       setUser(null);
       setUserPet(null);
+      setUserPets([]);
     } finally {
       setLoading(false);
     }
@@ -67,6 +73,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       } else {
         setUser(null);
         setUserPet(null);
+        setUserPets([]);
         setLoading(false);
       }
     });
@@ -78,7 +85,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <UserContext.Provider
-      value={{ user, userPet, loading, refreshUser: loadUser }}
+      value={{ user, userPet, userPets, loading, refreshUser: loadUser }}
     >
       {children}
     </UserContext.Provider>

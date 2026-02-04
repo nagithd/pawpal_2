@@ -17,16 +17,18 @@ interface IncomingCall {
 
 export default function GlobalCallNotification() {
   const supabase = createClient();
-  const { user } = useUser();
+  const { user, userPets } = useUser();
   const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [userPets, setUserPets] = useState<any[]>([]);
   const callChannelsRef = useRef<Map<string, any>>(new Map());
   const ringtoneRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (user) {
-      loadUserData();
+      setCurrentUserId(user.id);
+      if (userPets.length > 0) {
+        subscribeToAllMatches(userPets);
+      }
     }
 
     // Setup ringtone
@@ -49,24 +51,7 @@ export default function GlobalCallNotification() {
         ringtoneRef.current = null;
       }
     };
-  }, []);
-
-  const loadUserData = async () => {
-    if (!user) {
-      return;
-    }
-    setCurrentUserId(user.id);
-    // Load user's pets
-    const { data: petsData } = await supabase
-      .from("pets")
-      .select("*")
-      .eq("owner_id", user.id)
-      .eq("is_active", true);
-    if (petsData) {
-      setUserPets(petsData);
-      subscribeToAllMatches(petsData);
-    }
-  };
+  }, [user, userPets]);
 
   const subscribeToAllMatches = async (pets: any[]) => {
     // Get all matches for user's pets

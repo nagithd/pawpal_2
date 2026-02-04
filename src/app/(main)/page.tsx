@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/lib/contexts/UserContext";
 import CreatePostModal from "@/components/CreatePostModal";
@@ -22,14 +22,27 @@ export default function HomePage() {
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [loadingSidebar, setLoadingSidebar] = useState(true);
+  const backgroundLoadRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     loadPostsProgressively();
     loadSidebar();
+    
+    return () => {
+      // Cleanup background load on unmount
+      if (backgroundLoadRef.current) {
+        clearTimeout(backgroundLoadRef.current);
+      }
+    };
   }, []);
 
   const loadPostsProgressively = async () => {
     setLoadingPosts(true);
+
+    // Cancel any pending background load
+    if (backgroundLoadRef.current) {
+      clearTimeout(backgroundLoadRef.current);
+    }
 
     // Load first 5 posts immediately
     const { data: firstBatch } = await supabase
@@ -50,7 +63,7 @@ export default function HomePage() {
       setLoadingPosts(false);
 
       // Load remaining posts in background
-      setTimeout(async () => {
+      backgroundLoadRef.current = setTimeout(async () => {
         const { data: remainingPosts } = await supabase
           .from("posts")
           .select(
@@ -65,8 +78,14 @@ export default function HomePage() {
           .range(5, 19);
 
         if (remainingPosts) {
-          setPosts((prev) => [...prev, ...remainingPosts]);
+          setPosts((prev) => {
+            // Deduplicate posts by ID
+            const existingIds = new Set(prev.map(p => p.id));
+            const newPosts = remainingPosts.filter(p => !existingIds.has(p.id));
+            return [...prev, ...newPosts];
+          });
         }
+        backgroundLoadRef.current = null;
       }, 500);
     } else {
       setLoadingPosts(false);
@@ -75,6 +94,13 @@ export default function HomePage() {
 
   const loadPosts = async () => {
     setLoadingPosts(true);
+    
+    // Cancel any pending background load
+    if (backgroundLoadRef.current) {
+      clearTimeout(backgroundLoadRef.current);
+      backgroundLoadRef.current = null;
+    }
+    
     const { data: postsData } = await supabase
       .from("posts")
       .select(

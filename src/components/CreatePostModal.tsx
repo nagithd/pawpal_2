@@ -19,44 +19,20 @@ export default function CreatePostModal({
   onPostCreated,
 }: CreatePostModalProps) {
   const supabase = createClient();
-  const { user } = useUser();
-  const [pets, setPets] = useState<any[]>([]);
+  const { user, userPets } = useUser();
   const [selectedPet, setSelectedPet] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
-  const [loadingPets, setLoadingPets] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string>("");
 
   useEffect(() => {
-    if (isOpen) {
-      loadUserPets();
+    if (isOpen && userPets.length > 0) {
+      setSelectedPet(userPets[0].id);
     }
-  }, [isOpen]);
-
-  const loadUserPets = async () => {
-    setLoadingPets(true);
-    if (!user) {
-      setLoadingPets(false);
-      return;
-    }
-
-    const { data: petsData } = await supabase
-      .from("pets")
-      .select("*")
-      .eq("owner_id", user.id)
-      .eq("is_active", true);
-
-    if (petsData) {
-      setPets(petsData);
-      if (petsData.length > 0) {
-        setSelectedPet(petsData[0].id);
-      }
-    }
-    setLoadingPets(false);
-  };
+  }, [isOpen, userPets]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -245,28 +221,7 @@ export default function CreatePostModal({
           </button>
         </div>
 
-        {loadingPets ? (
-          <div className="space-y-4 animate-pulse">
-            <div>
-              <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-              <div className="flex items-center gap-3 px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg">
-                <div className="w-12 h-12 rounded-full bg-gray-300"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-300 rounded w-1/2"></div>
-                  <div className="h-3 bg-gray-300 rounded w-1/3"></div>
-                </div>
-              </div>
-            </div>
-            <div>
-              <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-              <div className="h-32 bg-gray-200 rounded"></div>
-            </div>
-            <div>
-              <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-              <div className="h-12 bg-gray-200 rounded"></div>
-            </div>
-          </div>
-        ) : pets.length === 0 ? (
+        {userPets.length === 0 ? (
           <div className="text-center py-8">
             <GiPawHeart className="text-xl mx-auto mb-4 text-pink-500" />
             <p className="text-gray-600">
@@ -280,31 +235,27 @@ export default function CreatePostModal({
                 Your Pet
               </label>
               <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
-                {selectedPet && pets.find((p) => p.id === selectedPet) && (
+                {userPets[0] && (
                   <>
                     <div className="w-18 h-18 rounded-full overflow-hidden bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                      {pets.find((p) => p.id === selectedPet)?.avatar_url ? (
+                      {userPets[0]?.avatar_url ? (
                         <img
-                          src={
-                            pets.find((p) => p.id === selectedPet)?.avatar_url
-                          }
+                          src={userPets[0]?.avatar_url}
                           alt="Pet"
                           className="w-full h-full object-cover"
                         />
                       ) : (
                         <span className="text-white font-bold text-1xl">
-                          {pets.find((p) => p.id === selectedPet)?.name?.[0] ||
-                            "P"}
+                          {userPets[0]?.name?.[0] || "P"}
                         </span>
                       )}
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900 text-lg">
-                        {pets.find((p) => p.id === selectedPet)?.name}
+                        {userPets[0]?.name}
                       </p>
                       <p className="text-xs text-gray-500 text-2lg">
-                        {pets.find((p) => p.id === selectedPet)?.breed ||
-                          "Your pet"}
+                        {userPets[0]?.breed || "Your pet"}
                       </p>
                     </div>
                   </>
