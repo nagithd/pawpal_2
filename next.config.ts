@@ -27,6 +27,26 @@ const nextConfig: NextConfig = {
         hostname: "filebroker-cdn.lazada.vn",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "kokopet.vn",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "hachikopetshop.vn",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "vietgiftmarket.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "senyeu.vn",
+        pathname: "/**",
+      },
     ],
   },
 };
