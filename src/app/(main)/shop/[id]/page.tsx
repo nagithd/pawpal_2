@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useUser } from "@/lib/contexts/UserContext";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { ShoppingCart } from "lucide-react";
@@ -22,6 +23,7 @@ type Product = {
 export default function ProductDetailPage() {
   const { id } = useParams();
   const supabase = createClient();
+  const { user } = useUser();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
@@ -55,10 +57,6 @@ export default function ProductDetailPage() {
   };
 
   const addToCart = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
     if (!user) return toast.error("Please log in");
 
     const { error } = await supabase.from("cart_items").insert({

@@ -5,9 +5,11 @@ import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { Trash2 } from "lucide-react";
+import { useUser } from "@/lib/contexts/UserContext";
 
 export default function CartPage() {
   const supabase = createClient();
+  const { user } = useUser();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState("cod");
@@ -21,9 +23,6 @@ export default function CartPage() {
 
   const fetchCart = async () => {
     setLoading(true);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
     if (!user) {
       setLoading(false);
       return;
@@ -39,10 +38,6 @@ export default function CartPage() {
   };
 
   const fetchUserInfo = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
     if (!user) return;
 
     const { data, error } = await supabase
@@ -77,10 +72,6 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     if (items.length === 0) return toast.error("Giỏ hàng trống");
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
 
     if (!user) return toast.error("Vui lòng đăng nhập");
 
@@ -207,7 +198,10 @@ export default function CartPage() {
             {/* Left - Product List Skeleton */}
             <div className="lg:col-span-2 space-y-6">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="flex gap-4 bg-white p-4 rounded-2xl shadow-lg">
+                <div
+                  key={i}
+                  className="flex gap-4 bg-white p-4 rounded-2xl shadow-lg"
+                >
                   <div className="w-20 h-20 bg-gray-200 rounded-lg"></div>
                   <div className="flex-1">
                     <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
@@ -248,9 +242,7 @@ export default function CartPage() {
       <div className="grid lg:grid-cols-3 gap-10">
         {/* Product List */}
         <div className="lg:col-span-2 space-y-6">
-          {items.length === 0 && (
-            <p className="text-gray-600">Empty Cart...</p>
-          )}
+          {items.length === 0 && <p className="text-gray-600">Empty Cart...</p>}
 
           {items.map((item) => (
             <div

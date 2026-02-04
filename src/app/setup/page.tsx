@@ -51,7 +51,6 @@ export default function SetupPage() {
       });
 
       const data = await response.json();
-      console.log("Setup response:", data);
       if (!response.ok) {
         throw new Error(data.error || "Có lỗi xảy ra");
       }

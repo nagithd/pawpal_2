@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
+import { useUser } from "@/lib/contexts/UserContext";
 import toast from "react-hot-toast";
 import {
   IoHome,
@@ -21,30 +22,27 @@ export default function TopBar() {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
-  const [user, setUser] = useState<any>(null);
+  const { user } = useUser();
   const [userData, setUserData] = useState<any>(null);
 
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-
-      if (user) {
+    if (user) {
+      const getUserData = async () => {
         const { data: userDataFromDB } = await supabase
           .from("users")
           .select("*")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
         if (userDataFromDB) {
           setUserData(userDataFromDB);
         }
-      }
-    };
-    getUser();
-  }, []);
+      };
+      getUserData();
+    } else {
+      setUserData(null);
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();

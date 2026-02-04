@@ -12,6 +12,7 @@ import {
 import MessageBubble from "./MessageBubble";
 import VideoCallModal from "./VideoCallModal";
 import { createClient } from "@/lib/supabase/client";
+import { useUser } from "@/lib/contexts/UserContext";
 import { WebRTCManager, CallType, CallStatus } from "@/lib/webrtc";
 
 // Message cache to prevent refetching when switching conversations
@@ -63,6 +64,8 @@ export default function ChatWindow({
   currentPetId,
   onMessageSent,
 }: ChatWindowProps) {
+  const supabase = createClient();
+  const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -104,8 +107,6 @@ export default function ChatWindow({
   const callTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const callWindowRef = useRef<Window | null>(null);
   const callBroadcastRef = useRef<BroadcastChannel | null>(null);
-  const supabase = createClient();
-
   const MESSAGES_PER_PAGE = 30;
 
   const scrollToBottom = (instant = false) => {
@@ -227,9 +228,6 @@ export default function ChatWindow({
   }, [match?.matchId]); // Only depend on matchId, not entire match object
 
   const loadCurrentUser = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
     if (user) setCurrentUserId(user.id);
   };
 
@@ -958,11 +956,6 @@ export default function ChatWindow({
 
     // If sending image, show loading state instead of optimistic message
     if (imageToSend) {
-      console.log("Adding upload message:", {
-        id: uploadId,
-        preview: imagePreviewToShow,
-        content: messageContent,
-      });
       setUploadingMessages((prev) => {
         const updated = [
           ...prev,
@@ -972,7 +965,6 @@ export default function ChatWindow({
             content: messageContent || null,
           },
         ];
-        console.log("Updated uploadingMessages:", updated);
         return updated;
       });
       // Force scroll after state update
@@ -1138,10 +1130,20 @@ export default function ChatWindow({
         {loadingConversation ? (
           <div className="space-y-4 animate-pulse">
             {[1, 2, 3, 4, 5].map((n) => (
-              <div key={n} className={`flex items-end gap-2 ${n % 2 === 0 ? '' : 'flex-row-reverse'}`}>
-                <div className={`w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 ${n % 2 === 0 ? '' : 'hidden'}`}></div>
-                <div className={`max-w-[70%] ${n % 2 === 0 ? '' : 'items-end flex flex-col'}`}>
-                  <div className={`h-16 rounded-2xl ${n % 2 === 0 ? 'bg-gray-300' : 'bg-pink-200'}`} style={{ width: `${150 + (n * 30)}px` }}></div>
+              <div
+                key={n}
+                className={`flex items-end gap-2 ${n % 2 === 0 ? "" : "flex-row-reverse"}`}
+              >
+                <div
+                  className={`w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 ${n % 2 === 0 ? "" : "hidden"}`}
+                ></div>
+                <div
+                  className={`max-w-[70%] ${n % 2 === 0 ? "" : "items-end flex flex-col"}`}
+                >
+                  <div
+                    className={`h-16 rounded-2xl ${n % 2 === 0 ? "bg-gray-300" : "bg-pink-200"}`}
+                    style={{ width: `${150 + n * 30}px` }}
+                  ></div>
                   <div className="h-3 bg-gray-200 rounded w-16 mt-1"></div>
                 </div>
               </div>
@@ -1188,51 +1190,53 @@ export default function ChatWindow({
             ))}
 
             {messages.map((message, index) => {
-          const nextMessage = messages[index + 1];
-          const prevMessage = messages[index - 1];
+              const nextMessage = messages[index + 1];
+              const prevMessage = messages[index - 1];
 
-          // Check nếu tin nhắn tiếp theo là từ cùng người và trong vòng 2 phút
-          const isSameSenderNext =
-            nextMessage && nextMessage.sender_pet_id === message.sender_pet_id;
-          const isWithin2Minutes =
-            nextMessage &&
-            new Date(nextMessage.created_at).getTime() -
-              new Date(message.created_at).getTime() <
-              2 * 60 * 1000;
+              // Check nếu tin nhắn tiếp theo là từ cùng người và trong vòng 2 phút
+              const isSameSenderNext =
+                nextMessage &&
+                nextMessage.sender_pet_id === message.sender_pet_id;
+              const isWithin2Minutes =
+                nextMessage &&
+                new Date(nextMessage.created_at).getTime() -
+                  new Date(message.created_at).getTime() <
+                  2 * 60 * 1000;
 
-          // Check nếu tin nhắn trước đó là từ cùng người và trong vòng 2 phút
-          const isSameSenderPrev =
-            prevMessage && prevMessage.sender_pet_id === message.sender_pet_id;
-          const isPrevWithin2Minutes =
-            prevMessage &&
-            new Date(message.created_at).getTime() -
-              new Date(prevMessage.created_at).getTime() <
-              2 * 60 * 1000;
+              // Check nếu tin nhắn trước đó là từ cùng người và trong vòng 2 phút
+              const isSameSenderPrev =
+                prevMessage &&
+                prevMessage.sender_pet_id === message.sender_pet_id;
+              const isPrevWithin2Minutes =
+                prevMessage &&
+                new Date(message.created_at).getTime() -
+                  new Date(prevMessage.created_at).getTime() <
+                  2 * 60 * 1000;
 
-          // Chỉ hiện avatar và timestamp ở tin nhắn cuối cùng của group
-          const shouldShowAvatar = !(isSameSenderNext && isWithin2Minutes);
-          const shouldShowTimestamp = shouldShowAvatar;
+              // Chỉ hiện avatar và timestamp ở tin nhắn cuối cùng của group
+              const shouldShowAvatar = !(isSameSenderNext && isWithin2Minutes);
+              const shouldShowTimestamp = shouldShowAvatar;
 
-          return (
-            <div
-              key={message.id}
-              ref={(el) => {
-                if (el) messageRefs.current[message.id] = el;
-              }}
-            >
-              <MessageBubble
-                message={message}
-                isOwnMessage={message.sender_pet_id === currentPetId}
-                showAvatar={shouldShowAvatar}
-                showTimestamp={shouldShowTimestamp}
-                currentUserId={currentUserId}
-                reactions={reactions[message.id] || []}
-                onReaction={handleReaction}
-                onReply={handleReply}
-                onScrollToMessage={handleScrollToMessage}
-              />
-            </div>
-          );
+              return (
+                <div
+                  key={message.id}
+                  ref={(el) => {
+                    if (el) messageRefs.current[message.id] = el;
+                  }}
+                >
+                  <MessageBubble
+                    message={message}
+                    isOwnMessage={message.sender_pet_id === currentPetId}
+                    showAvatar={shouldShowAvatar}
+                    showTimestamp={shouldShowTimestamp}
+                    currentUserId={currentUserId}
+                    reactions={reactions[message.id] || []}
+                    onReaction={handleReaction}
+                    onReply={handleReply}
+                    onScrollToMessage={handleScrollToMessage}
+                  />
+                </div>
+              );
             })}
             <div ref={messagesEndRef} />
           </>

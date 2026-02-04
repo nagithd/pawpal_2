@@ -86,7 +86,6 @@ export class WebRTCManager {
     remotePetId: string,
     currentPetId: string,
   ): Promise<MediaStream> {
-    console.log("🔵 Starting call from", currentPetId, "to", remotePetId);
 
     // Subscribe to signals FIRST
     await this.subscribeToSignals(currentPetId);
@@ -104,22 +103,14 @@ export class WebRTCManager {
     await this.peerConnection!.setLocalDescription(offer);
 
     // Wait for receiver to signal ready, or timeout after 10 seconds
-    console.log("🔵 Waiting for receiver to be ready...");
     const readyReceived = await this.waitForReceiverReady(10000);
 
-    if (!readyReceived) {
-      console.log("🔵 Receiver not ready after 10s, sending offer anyway...");
-    }
-
-    // Send call offer via Supabase
-    console.log("🔵 Sending offer signal...");
     await this.sendSignal("offer", {
       offer,
       type,
       from: currentPetId,
       to: remotePetId,
     });
-    console.log("🔵 Offer sent successfully");
 
     return stream;
   }
@@ -133,7 +124,6 @@ export class WebRTCManager {
 
       const handleReady = (payload: any) => {
         if (payload.type === "receiver-ready") {
-          console.log("🔵 Receiver is ready!");
           clearTimeout(timer);
           resolve(true);
         }
@@ -149,19 +139,14 @@ export class WebRTCManager {
     remotePetId: string,
     currentPetId: string,
   ): Promise<MediaStream> {
-    console.log("🟢 Accepting call, setting up peer connection...");
 
     // Ensure peer connection exists
     if (!this.peerConnection) {
-      console.log("🟢 Creating peer connection for incoming call");
       await this.subscribeToSignals(currentPetId);
       this.createPeerConnection();
     }
 
-    // Get user media first
-    console.log("🟢 Requesting media permissions...");
     const stream = await this.getUserMedia(type);
-    console.log("🟢 Media stream acquired");
 
     // Add local stream tracks to peer connection
     stream.getTracks().forEach((track) => {
@@ -169,11 +154,8 @@ export class WebRTCManager {
     });
 
     // Create and send answer after adding tracks
-    console.log("🟢 Creating answer...");
     const answer = await this.peerConnection!.createAnswer();
     await this.peerConnection!.setLocalDescription(answer);
-
-    console.log("🟢 Sending answer signal...");
     await this.sendSignal("answer", {
       answer,
       from: currentPetId,
@@ -219,21 +201,15 @@ export class WebRTCManager {
       console.error("❌ Channel not initialized for sending signal");
       return;
     }
-    console.log(
-      `🔵 Sending signal: ${event} on channel: ${this.channelName}`,
-      payload,
-    );
     const result = await this.channel.send({
       type: "broadcast",
       event,
       payload,
     });
-    console.log(`🔵 Signal send result:`, result);
   }
 
   // Public method to send receiver-ready signal
   async sendReceiverReady(currentPetId: string) {
-    console.log("🟢 Sending receiver-ready signal to caller");
     await this.sendSignal("receiver-ready", {
       from: currentPetId,
     });
@@ -243,44 +219,35 @@ export class WebRTCManager {
   async subscribeToSignals(currentPetId: string) {
     if (this.channel) {
       // Already subscribed
-      console.log("🔵 Channel already exists");
       return;
     }
 
-    console.log(`🔵 Creating channel: ${this.channelName}`);
     this.channel = this.supabase.channel(this.channelName);
 
     this.channel
       .on("broadcast", { event: "answer" }, async (payload: any) => {
-        console.log("🔵 Received answer event:", payload);
         if (payload.payload.to === currentPetId) {
           await this.handleAnswer(payload.payload.answer);
         }
       })
       .on("broadcast", { event: "ice-candidate" }, async (payload: any) => {
-        console.log("🔵 Received ICE candidate");
         await this.handleIceCandidate(payload.payload.candidate);
       })
       .on("broadcast", { event: "call-rejected" }, () => {
-        console.log("🔵 Call rejected");
         if (this.onCallEndCallback) {
           this.onCallEndCallback();
         }
       })
       .on("broadcast", { event: "call-end" }, () => {
-        console.log("🔵 Call ended");
         if (this.onCallEndCallback) {
           this.onCallEndCallback();
         }
       })
       .subscribe((status) => {
-        console.log(`🔵 Channel subscription status:`, status);
       });
 
     // Wait a bit for subscription to be ready
-    console.log("🔵 Waiting 500ms for channel to be ready...");
     await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log("🔵 Channel should be ready now");
   }
 
   // Send rejection signal

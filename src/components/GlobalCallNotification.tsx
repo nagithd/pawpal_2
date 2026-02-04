@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useUser } from "@/lib/contexts/UserContext";
 import { IoCall, IoVideocam, IoClose } from "react-icons/io5";
 import Image from "next/image";
 
@@ -16,6 +17,7 @@ interface IncomingCall {
 
 export default function GlobalCallNotification() {
   const supabase = createClient();
+  const { user } = useUser();
   const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userPets, setUserPets] = useState<any[]>([]);
@@ -23,14 +25,15 @@ export default function GlobalCallNotification() {
   const ringtoneRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    loadUserData();
+    if (user) {
+      loadUserData();
+    }
 
     // Setup ringtone
     if (typeof window !== "undefined") {
       // Sử dụng simple beep thay vì file
       // ringtoneRef.current = new Audio("/ringtone.mp3");
       // ringtoneRef.current.loop = true;
-      console.log("🟢 Ringtone setup skipped - will use notification only");
     }
 
     return () => {
@@ -49,26 +52,16 @@ export default function GlobalCallNotification() {
   }, []);
 
   const loadUserData = async () => {
-    console.log("🟢 GlobalCallNotification: Loading user data...");
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
     if (!user) {
-      console.log("🔴 No user found");
       return;
     }
     setCurrentUserId(user.id);
-    console.log("🟢 User ID:", user.id);
-
     // Load user's pets
     const { data: petsData } = await supabase
       .from("pets")
       .select("*")
       .eq("owner_id", user.id)
       .eq("is_active", true);
-
-    console.log("🟢 Loaded pets:", petsData);
     if (petsData) {
       setUserPets(petsData);
       subscribeToAllMatches(petsData);
@@ -76,10 +69,6 @@ export default function GlobalCallNotification() {
   };
 
   const subscribeToAllMatches = async (pets: any[]) => {
-    console.log(
-      "🟢 Subscribing to matches for pets:",
-      pets.map((p) => p.id),
-    );
     // Get all matches for user's pets
     const petIds = pets.map((p) => p.id);
 
@@ -98,9 +87,7 @@ export default function GlobalCallNotification() {
         `pet_1_id.in.(${petIds.join(",")}),pet_2_id.in.(${petIds.join(",")})`,
       );
 
-    console.log("🟢 Found matches:", matches);
     if (!matches || matches.length === 0) {
-      console.log("🔴 No matches found");
       return;
     }
 
@@ -112,23 +99,12 @@ export default function GlobalCallNotification() {
       const otherPet =
         match.pet_1_id === currentPet.id ? match.pet2 : match.pet1;
 
-      console.log(`🟢 Setting up channel for match ${match.id}:`, {
-        currentPetId: currentPet?.id,
-        otherPetId: otherPet?.id,
-        otherPetName: otherPet?.name,
-      });
-
       const channelName = `call:${match.id}`;
       const channel = supabase.channel(channelName);
 
       channel
         .on("broadcast", { event: "incoming-call" }, async (payload: any) => {
-          console.log(
-            `🟢 [${channelName}] Received incoming-call event:`,
-            payload.payload,
-          );
           if (payload.payload.to === currentPet.id) {
-            console.log("🟢 Call is for current pet, showing notification");
             // Incoming call!
             setIncomingCall({
               matchId: match.id,
@@ -143,17 +119,9 @@ export default function GlobalCallNotification() {
             if (ringtoneRef.current) {
               ringtoneRef.current
                 ?.play()
-                .catch((e) => console.log("Ringtone error:", e));
+                .catch((e) => console.error("Ringtone error:", e));
             } else {
-              console.log("🟢 No ringtone - showing visual notification only");
             }
-          } else {
-            console.log(
-              "🟡 Call is for different pet:",
-              payload.payload.to,
-              "vs",
-              currentPet.id,
-            );
           }
         })
         .subscribe((status) => {

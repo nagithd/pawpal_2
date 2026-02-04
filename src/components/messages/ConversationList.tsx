@@ -72,8 +72,11 @@ export default function ConversationList({
                 {match.isOnline ? (
                   <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                 ) : (
-                  match.lastActive && (() => {
-                    const timeDiff = new Date().getTime() - new Date(match.lastActive).getTime();
+                  match.lastActive &&
+                  (() => {
+                    const timeDiff =
+                      new Date().getTime() -
+                      new Date(match.lastActive).getTime();
                     const oneDayMs = 24 * 60 * 60 * 1000;
                     if (timeDiff < oneDayMs) {
                       const minutes = Math.floor(timeDiff / (60 * 1000));

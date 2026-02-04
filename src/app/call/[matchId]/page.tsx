@@ -96,7 +96,6 @@ export default function CallPage() {
         setTimeout(() => {
           if (broadcastChannel) {
             broadcastChannel.postMessage({ type: "CALL_ACCEPTED" });
-            console.log(" Successfully joined call - Sent CALL_ACCEPTED");
           }
         }, 500);
       } catch (error: any) {
@@ -127,7 +126,6 @@ export default function CallPage() {
     if (!call) return;
 
     const handleParticipantLeft = () => {
-      console.log("👋 Other participant left the call");
       // End call immediately when other person leaves
       handleCallEnd();
     };
@@ -145,7 +143,6 @@ export default function CallPage() {
     let duration = 0;
     if (callStartTime) {
       duration = Math.floor((Date.now() - callStartTime) / 1000);
-      console.log("📞 Call duration:", duration, "seconds");
 
       // Only save if call lasted more than 0 seconds
       // AND only the caller (not incoming) saves to avoid duplicate records
@@ -161,7 +158,6 @@ export default function CallPage() {
               isIncoming: false, // Always false since only caller saves
             }),
           });
-          console.log("✅ Call history saved");
         } catch (error) {
           console.error("❌ Error saving call history:", error);
         }

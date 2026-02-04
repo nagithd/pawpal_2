@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useUser } from "@/lib/contexts/UserContext";
 import toast from "react-hot-toast";
 import { GiPawHeart } from "react-icons/gi";
 import { IoImageOutline, IoClose, IoVideocam } from "react-icons/io5";
@@ -18,6 +19,7 @@ export default function CreatePostModal({
   onPostCreated,
 }: CreatePostModalProps) {
   const supabase = createClient();
+  const { user } = useUser();
   const [pets, setPets] = useState<any[]>([]);
   const [selectedPet, setSelectedPet] = useState("");
   const [content, setContent] = useState("");
@@ -36,9 +38,6 @@ export default function CreatePostModal({
 
   const loadUserPets = async () => {
     setLoadingPets(true);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
     if (!user) {
       setLoadingPets(false);
       return;
@@ -315,7 +314,7 @@ export default function CreatePostModal({
 
             <div>
               <label className="block text-lg font-medium text-gray-700 mb-2">
-               Content
+                Content
               </label>
               <textarea
                 value={content}

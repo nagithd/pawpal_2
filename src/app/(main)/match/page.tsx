@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useUser } from "@/lib/contexts/UserContext";
 import toast from "react-hot-toast";
 import {
   IoHeart,
@@ -46,6 +47,8 @@ interface SwipeHistory {
 }
 
 export default function MatchPage() {
+  const supabase = createClient();
+  const { user } = useUser();
   const [currentUserPet, setCurrentUserPet] = useState<Pet | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -73,7 +76,6 @@ export default function MatchPage() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
 
-  const supabase = createClient();
 
   useEffect(() => {
     fetchData();
@@ -96,9 +98,6 @@ export default function MatchPage() {
 
   const fetchRecentMatches = async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: userPets } = await supabase
@@ -150,9 +149,6 @@ export default function MatchPage() {
 
   const fetchPendingRequests = async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: userPets } = await supabase
@@ -229,9 +225,6 @@ export default function MatchPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Vui lòng đăng nhập");
         return;

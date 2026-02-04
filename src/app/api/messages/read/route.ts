@@ -42,7 +42,6 @@ export async function POST(request: NextRequest) {
 
     const userPetId = pets[0].id;
 
-    console.log("📖 Marking messages as read:", { matchId, userPetId });
 
     // Mark ALL unread messages from other pet as read
     // Simple: just mark all messages in this match that are NOT from current user and are unread
@@ -53,11 +52,6 @@ export async function POST(request: NextRequest) {
       .eq("is_read", false)
       .neq("sender_pet_id", userPetId)
       .select();
-
-    console.log("📖 Update result:", {
-      updatedCount: data?.length,
-      error: updateError,
-    });
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });

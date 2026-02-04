@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Suspense } from "react";
+import { useUser } from "@/lib/contexts/UserContext";
 
 export default function SuccessPageWrapper() {
   return (
@@ -14,6 +15,7 @@ export default function SuccessPageWrapper() {
 }
 
 export function SuccessPage() {
+  const { user } = useUser();
   const router = useRouter();
   const params = useSearchParams();
   const supabase = createClient();
@@ -30,10 +32,6 @@ export function SuccessPage() {
   useEffect(() => {
     const saveOrder = async () => {
       const orderCode = params.get("orderCode");
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
 
       if (!user || !orderCode) return;
 

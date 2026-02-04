@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useUser } from "@/lib/contexts/UserContext";
 import Image from "next/image";
 import {
   ChevronDown,
@@ -41,6 +42,7 @@ type Order = {
 
 export default function OrdersPage() {
   const supabase = createClient();
+  const { user } = useUser();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const PAGE_SIZE = 5;
@@ -64,10 +66,6 @@ export default function OrdersPage() {
   const totalPages = Math.ceil(totalOrders / PAGE_SIZE);
 
   const fetchOrders = async (currentPage = 1) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
     if (!user) return;
 
     const from = (currentPage - 1) * PAGE_SIZE;

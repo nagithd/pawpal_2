@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useUser } from "@/lib/contexts/UserContext";
 import toast from "react-hot-toast";
 import {
   IoImageOutline,
@@ -24,7 +25,10 @@ interface Pet {
 
 export default function ProfilePage() {
   const supabase = createClient();
+  const { user: authUser, refreshUser } = useUser();
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [petOperationLoading, setPetOperationLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -58,9 +62,6 @@ export default function ProfilePage() {
 
   const loadUserData = async () => {
     try {
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
       if (!authUser) return;
 
       const { data: userData } = await supabase
@@ -123,7 +124,7 @@ export default function ProfilePage() {
   };
 
   const handleUpdateProfile = async () => {
-    setLoading(true);
+    setSaving(true);
     try {
       let avatarUrl = user?.avatar_url;
 
@@ -150,7 +151,7 @@ export default function ProfilePage() {
       console.error("Update error:", error);
       toast.error(error.message || "Cập nhật thất bại");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -176,7 +177,7 @@ export default function ProfilePage() {
       return;
     }
 
-    setLoading(true);
+    setPetOperationLoading(true);
     try {
       const imageUrl = await uploadImage(newPet.image, "pets");
 
@@ -209,14 +210,14 @@ export default function ProfilePage() {
       console.error("Add pet error:", error);
       toast.error(error.message || "Thêm thất bại");
     } finally {
-      setLoading(false);
+      setPetOperationLoading(false);
     }
   };
 
   const handleDeletePet = async (petId: string) => {
     if (!confirm("Bạn có chắc muốn xóa thú cưng này?")) return;
 
-    setLoading(true);
+    setPetOperationLoading(true);
     try {
       const { error } = await supabase.from("pets").delete().eq("id", petId);
       if (error) throw error;
@@ -227,7 +228,7 @@ export default function ProfilePage() {
       console.error("Delete error:", error);
       toast.error(error.message || "Xóa thất bại");
     } finally {
-      setLoading(false);
+      setPetOperationLoading(false);
     }
   };
 
@@ -264,7 +265,7 @@ export default function ProfilePage() {
       return;
     }
 
-    setLoading(true);
+    setPetOperationLoading(true);
     try {
       let avatarUrl = pets.find((p) => p.id === petId)?.avatar_url;
 
@@ -293,7 +294,7 @@ export default function ProfilePage() {
       console.error("Update error:", error);
       toast.error(error.message || "Cập nhật thất bại");
     } finally {
-      setLoading(false);
+      setPetOperationLoading(false);
     }
   };
 
@@ -306,7 +307,7 @@ export default function ProfilePage() {
     petId: string,
     currentStatus: boolean,
   ) => {
-    setLoading(true);
+    setPetOperationLoading(true);
     try {
       const { error } = await supabase
         .from("pets")
@@ -321,17 +322,73 @@ export default function ProfilePage() {
       console.error("Toggle error:", error);
       toast.error("Cập nhật thất bại");
     } finally {
-      setLoading(false);
+      setPetOperationLoading(false);
     }
   };
 
   if (loading && !user) {
     return (
-      <div className="min-h-[125vh] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+      <div className="min-h-[125vh] bg-gradient-to-br from-gray-50 to-gray-100 pb-20">
+        <div className="max-w-4xl mx-auto p-6 animate-pulse">
+          {/* User Profile Skeleton */}
+          <div className="mb-6 p-4">
+            <div className="h-8 bg-gray-300 rounded w-48 mb-6"></div>
+
+            <div className="flex items-start gap-6">
+              {/* Avatar Skeleton */}
+              <div className="flex-shrink-0">
+                <div className="w-32 h-32 rounded-full bg-gray-300"></div>
+              </div>
+
+              {/* Info Skeleton */}
+              <div className="flex-1 space-y-4">
+                <div>
+                  <div className="h-4 bg-gray-300 rounded w-24 mb-2"></div>
+                  <div className="h-10 bg-gray-200 rounded-lg w-full"></div>
+                </div>
+                <div>
+                  <div className="h-4 bg-gray-300 rounded w-32 mb-2"></div>
+                  <div className="h-10 bg-gray-200 rounded-lg w-full"></div>
+                </div>
+                <div>
+                  <div className="h-4 bg-gray-300 rounded w-24 mb-2"></div>
+                  <div className="h-24 bg-gray-200 rounded-lg w-full"></div>
+                </div>
+                <div>
+                  <div className="h-4 bg-gray-300 rounded w-16 mb-2"></div>
+                  <div className="h-10 bg-gray-200 rounded-lg w-full"></div>
+                </div>
+                <div className="h-10 bg-gray-300 rounded-lg w-40"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Pets Section Skeleton */}
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-6">
+              <div className="h-8 bg-gray-300 rounded w-40"></div>
+              <div className="h-10 bg-gray-300 rounded-lg w-36"></div>
+            </div>
+
+            {/* Pet Cards Skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1].map((i) => (
+                <div key={i} className="bg-white rounded-xl shadow-md p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-20 h-20 rounded-full bg-gray-300"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-6 bg-gray-300 rounded w-32"></div>
+                      <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      <div className="h-4 bg-gray-200 rounded w-20"></div>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="w-8 h-8 bg-gray-300 rounded"></div>
+                      <div className="w-8 h-8 bg-gray-300 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -437,10 +494,10 @@ export default function ProfilePage() {
               </div>
               <button
                 onClick={handleUpdateProfile}
-                disabled={loading}
-                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:from-pink-600 hover:to-purple-700 disabled:opacity-50"
+                disabled={saving}
+                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:from-pink-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <IoSave /> Lưu thay đổi
+                <IoSave /> {saving ? "Đang lưu..." : "Lưu thay đổi"}
               </button>
             </div>
           </div>
@@ -574,10 +631,10 @@ export default function ProfilePage() {
               <div className="flex gap-2">
                 <button
                   onClick={handleAddPet}
-                  disabled={loading}
-                  className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 disabled:opacity-50"
+                  disabled={petOperationLoading}
+                  className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Lưu
+                  {petOperationLoading ? "Đang thêm..." : "Lưu"}
                 </button>
                 <button
                   onClick={() => {
@@ -716,10 +773,11 @@ export default function ProfilePage() {
                     <div className="flex gap-2 mt-4">
                       <button
                         onClick={() => handleUpdatePet(pet.id)}
-                        disabled={loading}
-                        className="flex-1 px-3 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 text-sm disabled:opacity-50"
+                        disabled={petOperationLoading}
+                        className="flex-1 px-3 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <IoSave className="inline mr-1" /> Lưu
+                        <IoSave className="inline mr-1" />{" "}
+                        {petOperationLoading ? "Đang lưu..." : "Lưu"}
                       </button>
                       <button
                         onClick={handleCancelEditPet}
@@ -789,6 +847,16 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
+
+      {/* Loading Overlay for Pet Operations */}
+      {petOperationLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-pink-500 mb-4"></div>
+            <p className="text-gray-700 font-medium">Đang xử lý...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

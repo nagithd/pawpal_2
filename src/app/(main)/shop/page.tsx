@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useUser } from "@/lib/contexts/UserContext";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { ShoppingCart } from "lucide-react";
@@ -20,6 +21,7 @@ type Product = {
 
 export default function ShopPage() {
   const supabase = createClient();
+  const { user } = useUser();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,10 +73,6 @@ export default function ShopPage() {
   };
 
   const addToCart = async (productId: string) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
     if (!user) return toast.error("Vui lòng đăng nhập");
 
     const { error } = await supabase.from("cart_items").insert({
