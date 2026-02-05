@@ -84,7 +84,6 @@ export default function MatchPage() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
 
-
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -281,11 +280,14 @@ export default function MatchPage() {
     }
   };
 
-  const fetchPets = async (currentOffset: number = 0, reset: boolean = false) => {
+  const fetchPets = async (
+    currentOffset: number = 0,
+    reset: boolean = false,
+  ) => {
     if (!currentUserPet) return;
 
     if (!reset && isLoadingMore) return;
-    
+
     if (!reset) {
       setIsLoadingMore(true);
     }
@@ -340,17 +342,18 @@ export default function MatchPage() {
       }
 
       // Fetch larger batch để đảm bảo có đủ pets sau khi filter
-      const { data: availablePets, error, count } = await query
-        .range(currentOffset, currentOffset + FETCH_SIZE - 1);
+      const {
+        data: availablePets,
+        error,
+        count,
+      } = await query.range(currentOffset, currentOffset + FETCH_SIZE - 1);
 
       if (error) throw error;
 
       let filteredPets = availablePets || [];
 
       // Filter out excluded pets
-      filteredPets = filteredPets.filter(
-        (pet) => !excludedIds.has(pet.id),
-      );
+      filteredPets = filteredPets.filter((pet) => !excludedIds.has(pet.id));
 
       // Apply age filter
       if (ageFilter.length > 0) {
@@ -370,8 +373,9 @@ export default function MatchPage() {
 
       // Check if there are more pets to load
       // Nếu số pets filtered ít hơn PETS_PER_BATCH, nghĩa là đã hết
-      const hasMorePets = filteredPets.length >= PETS_PER_BATCH && 
-                          (count ? currentOffset + FETCH_SIZE < count : false);
+      const hasMorePets =
+        filteredPets.length >= PETS_PER_BATCH &&
+        (count ? currentOffset + FETCH_SIZE < count : false);
       setHasMore(hasMorePets);
       setOffset(currentOffset + FETCH_SIZE);
     } catch (error: any) {

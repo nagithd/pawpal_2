@@ -27,12 +27,12 @@ export default function ShopPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
-  
+
   // Temporary filter states (chưa áp dụng)
   const [tempSearch, setTempSearch] = useState("");
   const [tempMinPrice, setTempMinPrice] = useState("");
   const [tempMaxPrice, setTempMaxPrice] = useState("");
-  
+
   // Applied filter states (đã áp dụng)
   const [search, setSearch] = useState("");
   const [minPrice, setMinPrice] = useState("");
@@ -213,7 +213,7 @@ export default function ShopPage() {
             >
               Apply Filter
             </button>
-            
+
             <button
               onClick={handleResetFilters}
               className="w-full py-2.5 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"

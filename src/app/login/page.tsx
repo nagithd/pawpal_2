@@ -56,14 +56,20 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[125vh] flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
+    <div className="min-h-[125vh] flex items-center justify-center bg-[url('/login_background.jpg')] bg-repeat bg-auto">
       <div className="w-full max-w-2xl px-8 py-10 bg-white rounded-3xl shadow-2xl">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent flex items-center justify-center gap-2">
-            <GiPawHeart className="text-5xl" /> PawPal
+          <h1
+            className="text-5xl font-black font-biscuit bg-[#f28125] bg-clip-text text-transparent flex items-center justify-center gap-2"
+            style={{ WebkitTextStroke: "2px rgba(242, 129, 37, 0.3)" }}
+          >
+            <GiPawHeart className="text-5xl" />{" "}
+            <span className="font-biscuit">PawPal</span>
           </h1>
-          <p className="text-gray-600 mt-4 text-lg">Find friends for your pets</p>
+          <p className="text-gray-600 mt-4 text-lg italic">
+            Find friends for your pets
+          </p>
         </div>
 
         {/* Login Form */}
@@ -105,7 +111,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-xl hover:from-pink-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 px-4 bg-[#f28125] text-white font-semibold rounded-xl hover:from-pink-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
@@ -115,10 +121,7 @@ export default function LoginPage() {
         <div className="mt-6 text-center">
           <p className="text-lg text-gray-600">
             Don't have an account?{" "}
-            <Link
-              href="/register"
-              className="text-pink-500 hover:text-pink-600 font-semibold"
-            >
+            <Link href="/register" className="text-[#f28125] font-semibold">
               Sign up now
             </Link>
           </p>
