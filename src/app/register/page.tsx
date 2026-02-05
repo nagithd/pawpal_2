@@ -350,13 +350,13 @@ export default function RegisterPage() {
           <div className="border-t border-gray-300 pt-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-[21px] font-semibold text-gray-900">Your Pets</h3>
-              <button
+              {/* <button
                 type="button"
                 onClick={addPet}
                 className="flex items-center gap-1 px-3 py-1 bg-pink-500 text-white rounded-lg text-sm hover:bg-pink-600"
               >
                 <IoAdd /> Add Pet
-              </button>
+              </button> */}
             </div>
 
             {pets.map((pet, index) => (

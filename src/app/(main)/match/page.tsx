@@ -60,6 +60,14 @@ export default function MatchPage() {
     Record<string, "like" | "dislike">
   >({});
 
+  // Pagination states
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const PETS_PER_BATCH = 10; // Số pets mới mỗi lần load
+  const FETCH_SIZE = 50; // Fetch nhiều hơn để đảm bảo có đủ sau khi filter
+  const LOAD_MORE_THRESHOLD = 5;
+
   // Filters
   const [petTypeFilter, setPetTypeFilter] = useState<string>("dog");
   const [ageFilter, setAgeFilter] = useState<string[]>([]);
@@ -84,10 +92,29 @@ export default function MatchPage() {
 
   useEffect(() => {
     if (currentUserPet) {
-      fetchPets();
+      // Reset pagination when filters change
+      setOffset(0);
+      setPets([]);
+      setCurrentIndex(0);
+      setHasMore(true);
+      fetchPets(0, true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [petTypeFilter, ageFilter, currentUserPet]);
+
+  // Check if we need to load more pets
+  useEffect(() => {
+    const remainingPets = pets.length - currentIndex;
+    if (
+      remainingPets <= LOAD_MORE_THRESHOLD &&
+      hasMore &&
+      !isLoadingMore &&
+      pets.length > 0
+    ) {
+      loadMorePets();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, pets.length, hasMore, isLoadingMore]);
 
   const getAgeCategory = (age: number): string => {
     if (age < 1) return "puppy";
@@ -254,8 +281,14 @@ export default function MatchPage() {
     }
   };
 
-  const fetchPets = async () => {
+  const fetchPets = async (currentOffset: number = 0, reset: boolean = false) => {
     if (!currentUserPet) return;
+
+    if (!reset && isLoadingMore) return;
+    
+    if (!reset) {
+      setIsLoadingMore(true);
+    }
 
     try {
       const { data: swipes } = await supabase
@@ -272,23 +305,12 @@ export default function MatchPage() {
       });
       setPetSwipeStatus(swipeStatusMap);
 
-      let query = supabase
-        .from("pets")
-        .select("*")
-        .neq("owner_id", currentUserPet.owner_id)
-        .eq("is_active", true);
+      // Get already swiped pet IDs
+      const swipedPetIds = new Set<string>(
+        swipes?.map((s) => s.to_pet_id) || [],
+      );
 
-      if (petTypeFilter !== "all") {
-        query = query.eq("species", petTypeFilter);
-      }
-
-      const { data: availablePets, error } = await query;
-
-      if (error) throw error;
-
-      let filteredPets = availablePets || [];
-
-      // Filter out pets that are already matched
+      // Get matched pet IDs
       const { data: userMatches } = await supabase
         .from("matches")
         .select("pet_1_id, pet_2_id")
@@ -304,32 +326,65 @@ export default function MatchPage() {
           matchedPetIds.add(match.pet_2_id);
       });
 
-      // Filter out pets that have already been swiped
-      const { data: userSwipes } = await supabase
-        .from("swipes")
-        .select("to_pet_id")
-        .eq("from_pet_id", currentUserPet.id);
+      // Combine excluded IDs
+      const excludedIds = new Set([...swipedPetIds, ...matchedPetIds]);
 
-      const swipedPetIds = new Set<string>(
-        userSwipes?.map((s) => s.to_pet_id) || [],
-      );
+      let query = supabase
+        .from("pets")
+        .select("*", { count: "exact" })
+        .neq("owner_id", currentUserPet.owner_id)
+        .eq("is_active", true);
 
+      if (petTypeFilter !== "all") {
+        query = query.eq("species", petTypeFilter);
+      }
+
+      // Fetch larger batch để đảm bảo có đủ pets sau khi filter
+      const { data: availablePets, error, count } = await query
+        .range(currentOffset, currentOffset + FETCH_SIZE - 1);
+
+      if (error) throw error;
+
+      let filteredPets = availablePets || [];
+
+      // Filter out excluded pets
       filteredPets = filteredPets.filter(
-        (pet) => !matchedPetIds.has(pet.id) && !swipedPetIds.has(pet.id),
+        (pet) => !excludedIds.has(pet.id),
       );
 
+      // Apply age filter
       if (ageFilter.length > 0) {
         filteredPets = filteredPets.filter((pet) =>
           ageFilter.includes(getAgeCategory(pet.age)),
         );
       }
 
-      setPets(filteredPets);
-      setCurrentIndex(0);
+      // Chỉ lấy PETS_PER_BATCH pets đầu tiên
+      const petsToAdd = filteredPets.slice(0, PETS_PER_BATCH);
+
+      if (reset) {
+        setPets(petsToAdd);
+      } else {
+        setPets((prev) => [...prev, ...petsToAdd]);
+      }
+
+      // Check if there are more pets to load
+      // Nếu số pets filtered ít hơn PETS_PER_BATCH, nghĩa là đã hết
+      const hasMorePets = filteredPets.length >= PETS_PER_BATCH && 
+                          (count ? currentOffset + FETCH_SIZE < count : false);
+      setHasMore(hasMorePets);
+      setOffset(currentOffset + FETCH_SIZE);
     } catch (error: any) {
       console.error("Error:", error);
       toast.error("Không thể tải dữ liệu");
+    } finally {
+      setIsLoadingMore(false);
     }
+  };
+
+  const loadMorePets = async () => {
+    if (!hasMore || isLoadingMore) return;
+    await fetchPets(offset, false);
   };
 
   const handleSwipe = async (
@@ -686,17 +741,27 @@ export default function MatchPage() {
             {!currentPet ? (
               <div className="text-center py-20">
                 <h2 className="text-3xl font-bold text-gray-800 mb-3">
-                  No More Pets!
+                  {isLoadingMore ? "Đang tải thêm..." : "No More Pets!"}
                 </h2>
                 <p className="text-gray-600 mb-6 text-lg">
-                  You've seen all available pets with current filters
+                  {isLoadingMore
+                    ? "Đang tìm kiếm thêm bạn mới..."
+                    : "You've seen all available pets with current filters"}
                 </p>
-                <button
-                  onClick={fetchData}
-                  className="px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full font-semibold hover:from-pink-600 hover:to-purple-700 transition shadow-lg hover:shadow-xl"
-                >
-                  Reload
-                </button>
+                {!isLoadingMore && (
+                  <button
+                    onClick={() => {
+                      setOffset(0);
+                      setPets([]);
+                      setCurrentIndex(0);
+                      setHasMore(true);
+                      fetchData();
+                    }}
+                    className="px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full font-semibold hover:from-pink-600 hover:to-purple-700 transition shadow-lg hover:shadow-xl"
+                  >
+                    Reload
+                  </button>
+                )}
               </div>
             ) : (
               <div className="max-w-md mx-auto">

@@ -27,6 +27,13 @@ export default function ShopPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
+  
+  // Temporary filter states (chưa áp dụng)
+  const [tempSearch, setTempSearch] = useState("");
+  const [tempMinPrice, setTempMinPrice] = useState("");
+  const [tempMaxPrice, setTempMaxPrice] = useState("");
+  
+  // Applied filter states (đã áp dụng)
   const [search, setSearch] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -90,6 +97,23 @@ export default function ShopPage() {
     fetchProducts(1);
   }, [search, minPrice, maxPrice]);
 
+  const handleApplyFilters = () => {
+    setSearch(tempSearch);
+    setMinPrice(tempMinPrice);
+    setMaxPrice(tempMaxPrice);
+    setPage(1);
+  };
+
+  const handleResetFilters = () => {
+    setTempSearch("");
+    setTempMinPrice("");
+    setTempMaxPrice("");
+    setSearch("");
+    setMinPrice("");
+    setMaxPrice("");
+    setPage(1);
+  };
+
   return (
     <div className="min-h-[125vh] bg-gradient-to-br from-gray-50 to-gray-100 px-6 py-12">
       {loading ? (
@@ -151,8 +175,9 @@ export default function ShopPage() {
             <input
               type="text"
               placeholder="Product name..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={tempSearch}
+              onChange={(e) => setTempSearch(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
               className="w-full px-4 py-2 rounded-lg bg-gray-100 text-gray-900 border border-gray-200 outline-none focus:border-pink-400"
             />
 
@@ -165,28 +190,33 @@ export default function ShopPage() {
                 <input
                   type="number"
                   placeholder="Price from"
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
+                  value={tempMinPrice}
+                  onChange={(e) => setTempMinPrice(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
                   className="w-full px-4 py-2 rounded-lg bg-gray-100 text-gray-900 border border-gray-200 outline-none focus:border-pink-400"
                 />
 
                 <input
                   type="number"
                   placeholder="Price to"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
+                  value={tempMaxPrice}
+                  onChange={(e) => setTempMaxPrice(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
                   className="w-full px-4 py-2 rounded-lg bg-gray-100 text-gray-900 border border-gray-200 outline-none focus:border-pink-400"
                 />
               </div>
             </div>
 
             <button
-              onClick={() => {
-                setSearch("");
-                setMinPrice("");
-                setMaxPrice("");
-              }}
-              className="w-full mt-4 py-2 rounded-lg bg-gradient-to-r from-pink-500 to-purple-600 font-semibold"
+              onClick={handleApplyFilters}
+              className="w-full mt-4 py-2.5 rounded-lg bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold hover:opacity-90 transition shadow-md"
+            >
+              Apply Filter
+            </button>
+            
+            <button
+              onClick={handleResetFilters}
+              className="w-full py-2.5 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"
             >
               Reset Filters
             </button>
