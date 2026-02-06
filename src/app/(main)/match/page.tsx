@@ -64,6 +64,7 @@ export default function MatchPage() {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
   const PETS_PER_BATCH = 10; // Số pets mới mỗi lần load
   const FETCH_SIZE = 50; // Fetch nhiều hơn để đảm bảo có đủ sau khi filter
   const LOAD_MORE_THRESHOLD = 5;
@@ -92,6 +93,7 @@ export default function MatchPage() {
   useEffect(() => {
     if (currentUserPet) {
       // Reset pagination when filters change
+      setIsFilterLoading(true);
       setOffset(0);
       setPets([]);
       setCurrentIndex(0);
@@ -383,6 +385,9 @@ export default function MatchPage() {
       toast.error("Không thể tải dữ liệu");
     } finally {
       setIsLoadingMore(false);
+      if (reset) {
+        setIsFilterLoading(false);
+      }
     }
   };
 
@@ -743,16 +748,31 @@ export default function MatchPage() {
             </div>
 
             {!currentPet ? (
-              <div className="text-center py-20">
-                <h2 className="text-3xl font-bold text-gray-800 mb-3">
-                  {isLoadingMore ? "Đang tải thêm..." : "No More Pets!"}
-                </h2>
-                <p className="text-gray-600 mb-6 text-lg">
-                  {isLoadingMore
-                    ? "Đang tìm kiếm thêm bạn mới..."
-                    : "You've seen all available pets with current filters"}
-                </p>
-                {!isLoadingMore && (
+              isFilterLoading || isLoadingMore ? (
+                // Loading skeleton for filter/loading state
+                <div className="max-w-md mx-auto">
+                  <div className="bg-white rounded-3xl shadow-2xl overflow-hidden mb-8 animate-pulse">
+                    <div className="h-[475px] bg-gradient-to-br from-gray-200 to-gray-300"></div>
+                    <div className="p-6 space-y-3">
+                      <div className="h-8 bg-gray-200 rounded w-2/3 mx-auto"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center gap-6">
+                    <div className="w-16 h-16 rounded-full bg-gray-200 animate-pulse"></div>
+                    <div className="w-14 h-14 rounded-full bg-gray-200 animate-pulse"></div>
+                    <div className="w-16 h-16 rounded-full bg-gray-200 animate-pulse"></div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <h2 className="text-3xl font-bold text-gray-800 mb-3">
+                    No More Pets!
+                  </h2>
+                  <p className="text-gray-600 mb-6 text-lg">
+                    You've seen all available pets with current filters
+                  </p>
                   <button
                     onClick={() => {
                       setOffset(0);
@@ -765,8 +785,8 @@ export default function MatchPage() {
                   >
                     Reload
                   </button>
-                )}
-              </div>
+                </div>
+              )
             ) : (
               <div className="max-w-md mx-auto">
                 <style>{`
