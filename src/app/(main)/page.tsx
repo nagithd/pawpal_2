@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/lib/contexts/UserContext";
 import CreatePostModal from "@/components/CreatePostModal";
 import PostCard from "@/components/PostCard";
+import StoryBar from "@/components/StoryBar";
 import {
   IoHeart,
   IoChatbubbles,
@@ -159,7 +160,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-[calc(125vh-65px)] bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <CreatePostModal
         isOpen={showCreatePost}
         onClose={() => setShowCreatePost(false)}
@@ -167,6 +168,11 @@ export default function HomePage() {
       />
 
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Story Bar */}
+        <div className="lg:max-w-3xl mx-auto">
+          <StoryBar />
+        </div>
+
         {/* Nút tạo bài đăng */}
         <div className="mb-6">
           {loadingPosts ? (
