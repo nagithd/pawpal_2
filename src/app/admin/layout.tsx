@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { BarChart2, Package, ShoppingCart } from "lucide-react";
+import { BarChart2, Package, ShoppingCart, Users } from "lucide-react";
 import LogoutButton from "@/components/LogoutButton";
 
 export default async function AdminLayout({
@@ -53,6 +53,14 @@ export default async function AdminLayout({
         >
           <Package size={18} />
           Products
+        </Link>
+
+        <Link
+          href="/admin/users"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100"
+        >
+          <Users size={18} />
+          Users
         </Link>
       </aside>
 
