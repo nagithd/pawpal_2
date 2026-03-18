@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Suspense } from "react";
-import { useUser } from "@/lib/contexts/UserContext";
 
 export default function SuccessPageWrapper() {
   return (
@@ -15,7 +14,6 @@ export default function SuccessPageWrapper() {
 }
 
 export function SuccessPage() {
-  const { user } = useUser();
   const router = useRouter();
   const params = useSearchParams();
   const supabase = createClient();
@@ -32,8 +30,12 @@ export function SuccessPage() {
   useEffect(() => {
     const saveOrder = async () => {
       const orderCode = params.get("orderCode");
+      if (!orderCode) return;
 
-      if (!user || !orderCode) return;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
 
       // Lấy cart hiện tại trước khi bị xoá
       const { data } = await supabase
@@ -54,11 +56,7 @@ export function SuccessPage() {
           phone: localStorage.getItem("checkout_phone"),
         }),
       });
-
-      // ⏳ Chờ 3 giây rồi về shop
-      setTimeout(() => {
-        router.push("/shop");
-      }, 3000);
+      router.push("/shop");
     };
 
     saveOrder();
